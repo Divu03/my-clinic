@@ -19,11 +19,21 @@ export interface DoctorClinic {
   type: string;
   logo?: string;
   description?: string;
-  openingHours: { start: string; end: string };
+  openingHours: { start: string; end: string }; // Matches your Prisma Json
+  distance_km?: number; // Added this because your Backend SQL calculates it
 }
 
 export interface Token {
   id: string;
   tokenNumber: number;
   status: 'WAITING' | 'CALLED' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED';
+  queueId: string;
+  patientId: string;
+}
+
+export interface QueueStatus {
+  queueId: string;
+  currentTokenNo: number;
+  waitingCount: number;
+  estimatedWaitTime?: number;
 }

@@ -1,122 +1,85 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useHomeViewModel } from '../../src/viewmodels/useHomeViewModel';
 
 export default function HomeScreen() {
-  const { clinics, radius, setRadius, loading } = useHomeViewModel();
-  const [filterVisible, setFilterVisible] = useState(false);
+  const { clinics, loading } = useHomeViewModel();
+  const router = useRouter();
+
+  const renderClinic = ({ item }: { item: any }) => (
+    <TouchableOpacity 
+      style={styles.card} 
+      onPress={() => router.push(`/clinic/${item.id}`)}
+    >
+      <View style={styles.cardHeader}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{item.name[0]}</Text>
+        </View>
+        <View style={styles.info}>
+          <Text style={styles.name}>{item.name}</Text>
+          <Text style={styles.type}>{item.type.replace('_', ' ')}</Text>
+          <View style={styles.metaRow}>
+            <Ionicons name="time-outline" size={14} color="#666" />
+            <Text style={styles.metaText}>{item.openingHours.start} - {item.openingHours.end}</Text>
+          </View>
+        </View>
+        <View style={styles.distanceBadge}>
+          <Text style={styles.distanceText}>
+             {item.distance_km ? `${item.distance_km.toFixed(1)} km` : 'Near'}
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
-      {/* Header / Filter Bar */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.filterButton} onPress={() => setFilterVisible(true)}>
-          <Ionicons name="options-outline" size={24} color="#0165FC" />
-          <Text style={styles.filterText}>Within {radius}km</Text>
-        </TouchableOpacity>
-      </View>
-
+      <Text style={styles.headerTitle}>Nearby Clinics</Text>
       {loading ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#0165FC" />
-        </View>
+        <ActivityIndicator size="large" color="#0165FC" style={{ marginTop: 50 }} />
       ) : (
-        <MapView 
-          style={styles.map}
-          initialRegion={{
-            latitude: 43.4643, // Default to Kitchener
-            longitude: -80.4844,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-          }}
-        >
-          {clinics.map((clinic) => (
-            <Marker 
-              key={clinic.id} 
-              coordinate={{ latitude: clinic.latitude, longitude: clinic.longitude }}
-              title={clinic.name}
-              description={clinic.type}
-            />
-          ))}
-        </MapView>
+        <FlatList
+          data={clinics}
+          keyExtractor={(item) => item.id}
+          renderItem={renderClinic}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+        />
       )}
-
-      <RadiusFilterModal 
-        visible={filterVisible} 
-        currentRadius={radius} 
-        onSelect={(val: number) => setRadius(val)} 
-        onClose={() => setFilterVisible(false)} 
-      />
     </View>
   );
 }
 
-const RadiusFilterModal = ({ visible, currentRadius, onSelect, onClose }: any) => (
-  <Modal visible={visible} transparent animationType="fade">
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalContent}>
-        <Text style={styles.modalTitle}>Select Search Radius</Text>
-        {[5, 10, 25, 50, 100].map(val => (
-          <TouchableOpacity 
-            key={val} 
-            style={[styles.option, currentRadius === val && styles.selectedOption]} 
-            onPress={() => { onSelect(val); onClose(); }}
-          >
-            <Text style={[styles.optionText, currentRadius === val && styles.selectedOptionText]}>
-              {val} km
-            </Text>
-          </TouchableOpacity>
-        ))}
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Text style={styles.closeButtonText}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </Modal>
-);
-
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: { 
-    position: 'absolute', 
-    top: 50, 
-    left: 20, 
-    right: 20, 
-    zIndex: 10,
-  },
-  filterButton: {
-    flexDirection: 'row',
+  container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 20 },
+  headerTitle: { fontSize: 28, fontWeight: 'bold', marginBottom: 15, marginTop: 10 },
+  list: { paddingBottom: 20 },
+  card: {
     backgroundColor: 'white',
-    padding: 12,
-    borderRadius: 25,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    flexDirection: 'row',
     alignItems: 'center',
-    elevation: 5,
+    // Shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f0f0f0'
   },
-  filterText: { marginLeft: 8, fontWeight: 'bold', color: '#333' },
-  map: { width: '100%', height: '100%' },
-  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  modalOverlay: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 20
-  },
-  modalContent: { 
-    backgroundColor: 'white', 
-    padding: 20, 
-    borderRadius: 15 
-  },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
-  option: { padding: 15, borderRadius: 10, marginVertical: 5, backgroundColor: '#F5F9FF' },
-  selectedOption: { backgroundColor: '#0165FC' },
-  optionText: { textAlign: 'center', fontSize: 16, color: '#333' },
-  selectedOptionText: { color: 'white', fontWeight: 'bold' },
-  closeButton: { marginTop: 10, padding: 15 },
-  closeButtonText: { textAlign: 'center', color: '#FF3B30', fontWeight: 'bold' }
+  cardHeader: { flexDirection: 'row', flex: 1, alignItems: 'center' },
+  avatar: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#E0F0FF', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+  avatarText: { color: '#0165FC', fontSize: 20, fontWeight: 'bold' },
+  info: { flex: 1 },
+  name: { fontSize: 16, fontWeight: 'bold', color: '#333' },
+  type: { fontSize: 13, color: '#0165FC', fontWeight: '600', marginTop: 2 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  metaText: { fontSize: 12, color: '#888', marginLeft: 4 },
+  distanceBadge: { backgroundColor: '#F5F9FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  distanceText: { fontSize: 12, fontWeight: 'bold', color: '#0165FC' }
 });

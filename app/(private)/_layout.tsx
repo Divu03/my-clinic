@@ -1,25 +1,27 @@
-import { Ionicons } from '@expo/vector-icons';
+// app/(private)/_layout.tsx
+import { Ionicons } from '@expo/vector-icons'; // Import icons
 import { Tabs } from 'expo-router';
+import { View } from 'react-native';
+import { ActiveTokenBar } from '../../src/components/ActiveTokenBar';
+import { QueueProvider } from '../../src/context/QueueContext';
 
-export default function TabLayout() {
+export default function PrivateLayout() {
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: '#0165FC', headerShown: false }}>
-      <Tabs.Screen name="index" options={{ 
-        title: 'Home', 
-        tabBarIcon: ({ color }) => <Ionicons name="map-outline" size={24} color={color} /> 
-      }} />
-      <Tabs.Screen name="search" options={{ 
-        title: 'Search', 
-        tabBarIcon: ({ color }) => <Ionicons name="search-outline" size={24} color={color} /> 
-      }} />
-      <Tabs.Screen name="tokens" options={{ 
-        title: 'My Queue', 
-        tabBarIcon: ({ color }) => <Ionicons name="ticket-outline" size={24} color={color} /> 
-      }} />
-      <Tabs.Screen name="profile" options={{ 
-        title: 'Profile', 
-        tabBarIcon: ({ color }) => <Ionicons name="person-outline" size={24} color={color} /> 
-      }} />
-    </Tabs>
+    <QueueProvider>
+       <View style={{ flex: 1 }}>
+         {/* This ensures the bar appears on TOP of all screens */}
+         <View style={{ paddingTop: 50, backgroundColor: 'white' }}>
+            <ActiveTokenBar />
+         </View>
+         <Tabs screenOptions={{ tabBarActiveTintColor: '#0165FC', headerShown: false }}>
+            <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({color}) => <Ionicons name="home" size={24} color={color} /> }} />
+            <Tabs.Screen name="map" options={{ title: 'Map', tabBarIcon: ({color}) => <Ionicons name="map" size={24} color={color} /> }} />
+            <Tabs.Screen name="tokens" options={{ title: 'Queue', tabBarIcon: ({color}) => <Ionicons name="people" size={24} color={color} /> }} />
+            <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: ({color}) => <Ionicons name="person" size={24} color={color} /> }} />
+            {/* Hide detail screens from tabs */}
+            <Tabs.Screen name="clinic/[id]" options={{ href: null }} /> 
+         </Tabs>
+       </View>
+    </QueueProvider>
   );
 }
