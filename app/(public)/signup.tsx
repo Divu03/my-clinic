@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useSignupViewModel } from '../../src/viewmodels/SignupviewModel';
+import { useSignupViewModel } from '../../src/viewmodels/SignupViewModel';
 
 export default function SignupScreen() {
   const router = useRouter();
