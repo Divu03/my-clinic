@@ -30,7 +30,11 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      ["expo-location", {
+        "locationAlwaysAndWhenInUsePermission": "Allow My Clinic to use your location to find nearby doctors."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
