@@ -1,60 +1,224 @@
-import { DoctorClinic, GetDoctorClinicsSchema } from '../models/types';
-import api from './api';
+import { AxiosError } from "axios";
+import {
+  ApiResponse,
+  Clinic,
+  ClinicsResponse,
+  GetClinicsQuery,
+  Queue,
+} from "../models/types";
+import api from "./api";
 
-// 1. Toggle this to TRUE to bypass the network error
-const USE_MOCK_DATA = true;
+// ============================================
+// CLINIC SERVICE
+// ============================================
+export const ClinicService = {
+  /**
+   * Get clinics with optional geo-filtering and pagination
+   * Uses query parameters as per API documentation
+   */
+  getClinics: async (
+    params: GetClinicsQuery
+  ): Promise<{
+    clinics: Clinic[];
+    pagination?: ClinicsResponse["data"]["pagination"];
+  }> => {
+    try {
+      console.log("=== ClinicService.getClinics ===");
+      console.log("Query params:", JSON.stringify(params, null, 2));
 
-// 2. Hardcoded Demo Data for "Kitchener Downtown Clinic" and others
-const MOCK_CLINICS_LIST: DoctorClinic[] = [
-  {
-    id: '1',
-    name: "Kitchener Downtown Clinic",
-    address: "123 King St W, Kitchener, ON",
-    latitude: 43.4516,
-    longitude: -80.4925,
-    type: "GENERAL_PRACTICE",
-    openingHours: { start: "08:00", end: "18:00" },
-    description: "A premier clinic located in the heart of Kitchener offering walk-in services and family practice.",
-    distance_km: 1.2,
-    logo: "https://img.freepik.com/free-vector/hospital-logo-design-vector-medical-cross_53876-136743.jpg"
+      // Use GET with query params as documented
+      const response = await api.get<ClinicsResponse>("/clinic", { params });
+
+      if (response.data.success) {
+        console.log(`Response: ${response.data.data.clinics.length} clinics`);
+        return {
+          clinics: response.data.data.clinics,
+          pagination: response.data.data.pagination,
+        };
+      }
+
+      console.log("Response: success=false");
+      return { clinics: [] };
+    } catch (error: any) {
+      console.error(
+        "Failed to fetch clinics:",
+        error?.response?.status,
+        error?.response?.data || error.message
+      );
+      return { clinics: [] };
+    }
   },
-  {
-    id: '2',
-    name: "Waterloo Health Centre",
-    address: "200 University Ave W, Waterloo, ON",
-    latitude: 43.4723,
-    longitude: -80.5449,
-    type: "DENTIST",
-    openingHours: { start: "09:00", end: "17:00" },
-    description: "Specialized dental care for students and families near the university district.",
-    distance_km: 3.5,
-    logo: "https://t4.ftcdn.net/jpg/04/78/33/27/360_F_478332711_zG9Gq5yX2F2G4b3i2j2.jpg"
-  }
-];
 
-export const getNearbyClinics = async (params: GetDoctorClinicsSchema) => {
-  if (USE_MOCK_DATA) {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return MOCK_CLINICS_LIST;
-  }
+  /**
+   * Get all clinics without location filter
+   */
+  getAllClinics: async (
+    page: number = 1,
+    limit: number = 10
+  ): Promise<Clinic[]> => {
+    try {
+      console.log("=== ClinicService.getAllClinics ===");
+      console.log(`Fetching all clinics - page: ${page}, limit: ${limit}`);
 
-  const response = await api.get('/clinics', { params });
-  return response.data;
+      const response = await api.get<ClinicsResponse>("/clinic", {
+        params: { page, limit },
+      });
+
+      if (response.data.success) {
+        console.log(`Response: ${response.data.data.clinics.length} clinics`);
+        return response.data.data.clinics;
+      }
+
+      return [];
+    } catch (error: any) {
+      console.error(
+        "Failed to fetch all clinics:",
+        error?.response?.status,
+        error?.response?.data || error.message
+      );
+      return [];
+    }
+  },
+
+  /**
+   * Get nearby clinics based on user location
+   */
+  getNearbyClinics: async (
+    latitude: number,
+    longitude: number,
+    radius: number = 10,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<Clinic[]> => {
+    try {
+      console.log("=== ClinicService.getNearbyClinics ===");
+      console.log(`User Location: lat=${latitude}, lng=${longitude}`);
+      console.log(`Requested Radius: ${radius}km`);
+
+      const response = await api.get<ClinicsResponse>("/clinic", {
+        params: { latitude, longitude, radius, page, limit },
+      });
+
+      if (response.data.success) {
+        const clinics = response.data.data.clinics;
+        console.log(`API returned ${clinics.length} clinics:`);
+
+        clinics.forEach((clinic, index) => {
+          console.log(
+            `  ${index + 1}. ${clinic.name} - ${
+              clinic.distance_km?.toFixed(2) || "?"
+            } km`
+          );
+        });
+
+        const outsideRadius = clinics.filter(
+          (c) => c.distance_km && c.distance_km > radius
+        );
+        if (outsideRadius.length > 0) {
+          console.warn(
+            `⚠️ ${outsideRadius.length} clinics are OUTSIDE the ${radius}km radius!`
+          );
+        }
+
+        return clinics;
+      }
+
+      console.log("Response: success=false");
+      return [];
+    } catch (error: any) {
+      console.error(
+        "Failed to fetch nearby clinics:",
+        error?.response?.status,
+        error?.response?.data || error.message
+      );
+      return [];
+    }
+  },
+
+  /**
+   * Get clinic by ID
+   */
+  getClinicById: async (clinicId: string): Promise<Clinic | null> => {
+    try {
+      const response = await api.get<ApiResponse<Clinic>>(
+        `/clinic/${clinicId}`
+      );
+
+      if (response.data.success) {
+        return response.data.data;
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Failed to fetch clinic details:", error);
+      return null;
+    }
+  },
+
+  /**
+   * Search clinics by name
+   */
+  searchClinics: async (
+    query: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<Clinic[]> => {
+    try {
+      const response = await api.get<ClinicsResponse>("/clinic", {
+        params: { query, page, limit },
+      });
+
+      if (response.data.success) {
+        return response.data.data.clinics;
+      }
+
+      return [];
+    } catch (error) {
+      console.error("Failed to search clinics:", error);
+      return [];
+    }
+  },
+
+  /**
+   * Get today's queue for a clinic
+   */
+  getClinicQueue: async (clinicId: string): Promise<Queue | null> => {
+    try {
+      const response = await api.get<ApiResponse<Queue>>(
+        `/queues/clinic/${clinicId}/today`
+      );
+
+      if (response.data.success) {
+        return response.data.data;
+      }
+
+      return null;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 404) {
+        return null;
+      }
+      return null;
+    }
+  },
 };
 
-export const getClinicDetails = async (clinicId: string): Promise<DoctorClinic> => {
-  if (USE_MOCK_DATA) {
-    console.log(`Fetching details for mock clinic ID: ${clinicId}`);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Find the specific clinic from our mock list
-    const found = MOCK_CLINICS_LIST.find(c => c.id === clinicId);
-    
-    // Return the found clinic, or the first one as a fallback so the UI never crashes
-    return found || MOCK_CLINICS_LIST[0];
-  }
-
-  const response = await api.get(`/clinics/${clinicId}`);
-  return response.data;
+// ============================================
+// BACKWARD COMPATIBILITY EXPORTS
+// ============================================
+export const getNearbyClinics = async (
+  params: GetClinicsQuery
+): Promise<Clinic[]> => {
+  const result = await ClinicService.getClinics(params);
+  return result.clinics;
 };
+
+export const getClinicDetails = async (clinicId: string): Promise<Clinic> => {
+  const clinic = await ClinicService.getClinicById(clinicId);
+  if (!clinic) {
+    throw new Error("Clinic not found");
+  }
+  return clinic;
+};
+
+export default ClinicService;

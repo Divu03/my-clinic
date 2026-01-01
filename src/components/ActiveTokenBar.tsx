@@ -1,26 +1,50 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useQueue } from '../context/QueueContext';
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useQueue } from "../context/QueueContext";
 
 export const ActiveTokenBar = () => {
-  const { activeToken, queueStatus } = useQueue();
+  const { activeToken, queueStatus, isConnected } = useQueue();
   const router = useRouter();
 
   if (!activeToken) return null;
 
+  const isYourTurn = activeToken.status === "CALLED";
+
   return (
-    <TouchableOpacity onPress={() => router.push('/(private)/tokens')} style={styles.container}>
-      <View style={styles.left}>
-        <Ionicons name="ticket" size={20} color="white" />
-        <Text style={styles.text}>Token #{activeToken.tokenNumber}</Text>
+    <TouchableOpacity
+      style={[styles.container, isYourTurn && styles.containerActive]}
+      onPress={() => router.push("/(private)/tokens")}
+      activeOpacity={0.8}
+    >
+      <View style={styles.leftSection}>
+        <View style={styles.tokenBadge}>
+          <Ionicons
+            name={isYourTurn ? "checkmark" : "ticket"}
+            size={16}
+            color={isYourTurn ? "#10B981" : "#0165FC"}
+          />
+        </View>
+        <View>
+          <Text style={styles.tokenLabel}>
+            {isYourTurn ? "Your Turn!" : "Your Token"}
+          </Text>
+          <Text style={styles.tokenNumber}>#{activeToken.tokenNumber}</Text>
+        </View>
       </View>
-      <View style={styles.right}>
-        <Text style={styles.subtext}>
-          Current: {queueStatus?.currentTokenNo || '-'}
+
+      <View style={styles.rightSection}>
+        <Text style={styles.currentText}>
+          Now: {queueStatus?.currentTokenNo || "-"}
         </Text>
-        <Ionicons name="chevron-forward" size={16} color="white" />
+        <View
+          style={[
+            styles.statusDot,
+            { backgroundColor: isConnected ? "#10B981" : "#EF4444" },
+          ]}
+        />
+        <Ionicons name="chevron-forward" size={18} color="white" />
       </View>
     </TouchableOpacity>
   );
@@ -28,21 +52,55 @@ export const ActiveTokenBar = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#0165FC',
-    padding: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#0165FC",
     marginHorizontal: 16,
     marginTop: 10,
     borderRadius: 12,
-    elevation: 4,
-    shadowColor: '#0165FC',
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
   },
-  left: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  right: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  text: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  subtext: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
+  containerActive: {
+    backgroundColor: "#10B981",
+  },
+  leftSection: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  tokenBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  tokenLabel: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 11,
+  },
+  tokenNumber: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  rightSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  currentText: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 12,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
 });
+
+export default ActiveTokenBar;

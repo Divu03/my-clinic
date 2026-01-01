@@ -1,57 +1,253 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useAuth } from "../../src/context/AuthContext";
 
+// ============================================
+// MENU ITEM COMPONENT
+// ============================================
+const MenuItem = ({
+  icon,
+  label,
+  onPress,
+  danger,
+}: {
+  icon: string;
+  label: string;
+  onPress?: () => void;
+  danger?: boolean;
+}) => (
+  <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
+    <View style={[styles.menuIcon, danger && { backgroundColor: "#FEE2E2" }]}>
+      <Ionicons
+        name={icon as any}
+        size={18}
+        color={danger ? "#EF4444" : "#0165FC"}
+      />
+    </View>
+    <Text style={[styles.menuLabel, danger && { color: "#EF4444" }]}>
+      {label}
+    </Text>
+    <Ionicons name="chevron-forward" size={18} color="#CBD5E1" />
+  </TouchableOpacity>
+);
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
 export default function ProfileScreen() {
-  const router = useRouter();
+  const { user, logout } = useAuth();
 
-  const handleLogout = async () => {
-    await SecureStore.deleteItemAsync('accessToken');
-    await SecureStore.deleteItemAsync('refreshToken');
-    router.replace('/(public)/login');
+  const handleLogout = () => {
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Logout", style: "destructive", onPress: logout },
+    ]);
+  };
+
+  const getInitials = () => {
+    if (!user) return "?";
+    return `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase();
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Profile Header */}
       <View style={styles.header}>
         <View style={styles.avatar}>
-           <Ionicons name="person" size={40} color="white" />
+          <Text style={styles.avatarText}>{getInitials()}</Text>
         </View>
-        <Text style={styles.name}>John Doe</Text>
-        <Text style={styles.email}>john.doe@example.com</Text>
+        <Text style={styles.userName}>
+          {user?.firstName} {user?.lastName}
+        </Text>
+        <Text style={styles.userEmail}>{user?.email}</Text>
+        <View style={styles.roleBadge}>
+          <Text style={styles.roleText}>{user?.role || "Patient"}</Text>
+        </View>
+      </View>
+
+      {/* Stats */}
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>12</Text>
+          <Text style={styles.statLabel}>Visits</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>4</Text>
+          <Text style={styles.statLabel}>Saved</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>2</Text>
+          <Text style={styles.statLabel}>Reviews</Text>
+        </View>
+      </View>
+
+      {/* Menu Sections */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Account</Text>
+        <View style={styles.menuCard}>
+          <MenuItem icon="person-outline" label="Edit Profile" />
+          <MenuItem icon="notifications-outline" label="Notifications" />
+          <MenuItem icon="shield-outline" label="Privacy" />
+        </View>
       </View>
 
       <View style={styles.section}>
-        <TouchableOpacity style={styles.row}>
-           <Ionicons name="create-outline" size={24} color="#333" />
-           <Text style={styles.rowText}>Edit Profile</Text>
-           <Ionicons name="chevron-forward" size={20} color="#ccc" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.row}>
-           <Ionicons name="notifications-outline" size={24} color="#333" />
-           <Text style={styles.rowText}>Notifications</Text>
-           <Ionicons name="chevron-forward" size={20} color="#ccc" />
-        </TouchableOpacity>
+        <Text style={styles.sectionTitle}>Preferences</Text>
+        <View style={styles.menuCard}>
+          <MenuItem icon="language-outline" label="Language" />
+          <MenuItem icon="location-outline" label="Location" />
+        </View>
       </View>
 
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Support</Text>
+        <View style={styles.menuCard}>
+          <MenuItem icon="help-circle-outline" label="Help Center" />
+          <MenuItem icon="document-text-outline" label="Terms & Privacy" />
+        </View>
+      </View>
+
+      {/* Logout */}
+      <View style={styles.section}>
+        <View style={styles.menuCard}>
+          <MenuItem icon="log-out-outline" label="Logout" onPress={handleLogout} danger />
+        </View>
+      </View>
+
+      <Text style={styles.version}>Version 1.0.0</Text>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F9FF' },
-  header: { alignItems: 'center', padding: 40, backgroundColor: 'white', marginBottom: 20 },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#0165FC', justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
-  name: { fontSize: 22, fontWeight: 'bold' },
-  email: { color: '#666' },
-  section: { backgroundColor: 'white', paddingHorizontal: 20 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-  rowText: { flex: 1, marginLeft: 15, fontSize: 16 },
-  logoutBtn: { margin: 20, backgroundColor: '#FF3B30', padding: 15, borderRadius: 12, alignItems: 'center' },
-  logoutText: { color: 'white', fontWeight: 'bold', fontSize: 16 }
+  container: {
+    flex: 1,
+    backgroundColor: "#FAFBFC",
+  },
+  header: {
+    alignItems: "center",
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#0165FC",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  avatarText: {
+    fontSize: 28,
+    fontWeight: "600",
+    color: "white",
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#1E293B",
+    marginBottom: 2,
+  },
+  userEmail: {
+    fontSize: 13,
+    color: "#64748B",
+    marginBottom: 8,
+  },
+  roleBadge: {
+    backgroundColor: "#F0F7FF",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  roleText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#0165FC",
+    textTransform: "uppercase",
+  },
+  statsRow: {
+    flexDirection: "row",
+    backgroundColor: "white",
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 12,
+    padding: 16,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#1E293B",
+  },
+  statLabel: {
+    fontSize: 11,
+    color: "#64748B",
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    backgroundColor: "#E2E8F0",
+  },
+  section: {
+    marginTop: 20,
+    paddingHorizontal: 16,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#94A3B8",
+    textTransform: "uppercase",
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  menuCard: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  menuIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#F0F7FF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  menuLabel: {
+    flex: 1,
+    fontSize: 14,
+    color: "#1E293B",
+  },
+  version: {
+    textAlign: "center",
+    color: "#CBD5E1",
+    fontSize: 11,
+    marginTop: 24,
+    marginBottom: 40,
+  },
 });

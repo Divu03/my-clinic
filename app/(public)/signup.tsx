@@ -1,79 +1,183 @@
-import { useRouter } from 'expo-router';
-import React from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useSignupViewModel } from '../../src/viewmodels/SignupViewModel';
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSignupViewModel } from "../../src/viewmodels/AuthViewModel";
 
 export default function SignupScreen() {
   const router = useRouter();
-  const { formData, updateField, handleSignup } = useSignupViewModel();
+  const { formData, updateField, isLoading, errors, handleSignup } =
+    useSignupViewModel();
+  const insets = useSafeAreaInsets();
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const onSubmit = async () => {
+    const result = await handleSignup();
+    if (!result.success && result.message) {
+      Alert.alert("Registration Failed", result.message);
+    }
+  };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-      style={{ flex: 1 }}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Animated.View entering={FadeInDown.delay(200).duration(800)}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join My Clinic to manage your health</Text>
-        </Animated.View>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Back Button */}
+        <TouchableOpacity
+          style={[
+            styles.backBtn,
+            {
+              top: insets.top + 10,
+              left: insets.left + 15,
+            },
+          ]}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={22} color="#1E293B" />
+        </TouchableOpacity>
 
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Join Qure Clinics today</Text>
+        </View>
+
+        {/* Form */}
         <View style={styles.form}>
-          {/* First & Last Name Row */}
-          <View style={styles.row}>
-            <Animated.View entering={FadeInDown.delay(400)} style={{ flex: 1 }}>
-              <TextInput 
-                placeholder="First Name" 
-                style={styles.input} 
-                onChangeText={(val) => updateField('firstName', val)}
-              />
-            </Animated.View>
-            <Animated.View entering={FadeInDown.delay(500)} style={{ flex: 1 }}>
-              <TextInput 
-                placeholder="Last Name" 
-                style={styles.input} 
-                onChangeText={(val) => updateField('lastName', val)}
-              />
-            </Animated.View>
+          {/* Name Row */}
+          <View style={styles.nameRow}>
+            <View style={styles.halfField}>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  placeholder="First Name"
+                  placeholderTextColor="#94A3B8"
+                  style={styles.input}
+                  value={formData.firstName}
+                  onChangeText={(val) => updateField("firstName", val)}
+                  autoCapitalize="words"
+                />
+              </View>
+              {errors.firstName && (
+                <Text style={styles.errorText}>{errors.firstName}</Text>
+              )}
+            </View>
+            <View style={styles.halfField}>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  placeholder="Last Name"
+                  placeholderTextColor="#94A3B8"
+                  style={styles.input}
+                  value={formData.lastName}
+                  onChangeText={(val) => updateField("lastName", val)}
+                  autoCapitalize="words"
+                />
+              </View>
+              {errors.lastName && (
+                <Text style={styles.errorText}>{errors.lastName}</Text>
+              )}
+            </View>
           </View>
 
-          <Animated.View entering={FadeInDown.delay(600)}>
-            <TextInput 
-              placeholder="Email Address" 
-              style={styles.input} 
+          {/* Email */}
+          <View style={styles.inputContainer}>
+            <Ionicons name="mail-outline" size={18} color="#64748B" />
+            <TextInput
+              placeholder="Email"
+              placeholderTextColor="#94A3B8"
+              style={[styles.input, { marginLeft: 10 }]}
+              value={formData.email}
+              onChangeText={(val) => updateField("email", val)}
               keyboardType="email-address"
-              onChangeText={(val) => updateField('email', val)}
+              autoCapitalize="none"
             />
-          </Animated.View>
+          </View>
+          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
-          <Animated.View entering={FadeInDown.delay(700)}>
-            <TextInput 
-              placeholder="Password" 
-              style={styles.input} 
-              secureTextEntry 
-              onChangeText={(val) => updateField('password', val)}
+          {/* Password */}
+          <View style={styles.inputContainer}>
+            <Ionicons name="lock-closed-outline" size={18} color="#64748B" />
+            <TextInput
+              placeholder="Password"
+              placeholderTextColor="#94A3B8"
+              style={[styles.input, { flex: 1, marginLeft: 10 }]}
+              value={formData.password}
+              onChangeText={(val) => updateField("password", val)}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
             />
-          </Animated.View>
+            <Pressable onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={18}
+                color="#64748B"
+              />
+            </Pressable>
+          </View>
+          {errors.password && (
+            <Text style={styles.errorText}>{errors.password}</Text>
+          )}
 
-          <Animated.View entering={FadeInDown.delay(800)}>
-            <TextInput 
-              placeholder="Confirm Password" 
-              style={styles.input} 
-              secureTextEntry 
-              onChangeText={(val) => updateField('confirmPassword', val)}
+          {/* Confirm Password */}
+          <View style={styles.inputContainer}>
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={18}
+              color="#64748B"
             />
-          </Animated.View>
+            <TextInput
+              placeholder="Confirm Password"
+              placeholderTextColor="#94A3B8"
+              style={[styles.input, { flex: 1, marginLeft: 10 }]}
+              value={formData.confirmPassword}
+              onChangeText={(val) => updateField("confirmPassword", val)}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+            />
+          </View>
+          {errors.confirmPassword && (
+            <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+          )}
 
-          <Animated.View entering={FadeInDown.delay(900)}>
-            <TouchableOpacity style={styles.button} onPress={handleSignup}>
-              <Text style={styles.buttonText}>Get Started</Text>
-            </TouchableOpacity>
-          </Animated.View>
-
-          <TouchableOpacity onPress={() => router.back()} style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? <Text style={styles.link}>Login</Text></Text>
+          {/* Submit */}
+          <TouchableOpacity
+            style={[styles.button, isLoading && styles.buttonDisabled]}
+            onPress={onSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={styles.buttonText}>Create Account</Text>
+            )}
           </TouchableOpacity>
+
+          {/* Login Link */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Text style={styles.footerLink}>Sign In</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -81,27 +185,100 @@ export default function SignupScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, paddingTop: 80, backgroundColor: '#fff' },
-  title: { fontSize: 30, fontWeight: 'bold', color: '#0165FC' },
-  subtitle: { fontSize: 16, color: '#666', marginBottom: 30, marginTop: 8 },
-  form: { gap: 15 },
-  row: { flexDirection: 'row', gap: 10 },
-  input: {
-    backgroundColor: '#F5F9FF',
-    padding: 16,
+  container: {
+    flex: 1,
+    backgroundColor: "#FAFBFC",
+    position: "relative",
+  },
+  scrollContent: {
+    flexGrow: 1,
+    padding: 24,
+    paddingTop: 60,
+    justifyContent: "center",
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
     borderRadius: 12,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: "#E2E8F0",
+    position: "absolute",
+  },
+  header: {
+    marginBottom: 32,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#64748B",
+  },
+  form: {},
+  nameRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  halfField: {
+    flex: 1,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: "#1E293B",
+  },
+  errorText: {
+    color: "#EF4444",
+    fontSize: 12,
+    marginTop: -8,
+    marginBottom: 12,
+    marginLeft: 4,
   },
   button: {
-    backgroundColor: '#0165FC',
-    padding: 18,
+    backgroundColor: "#0165FC",
+    paddingVertical: 14,
     borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 20,
+    alignItems: "center",
+    marginTop: 8,
   },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  footer: { marginTop: 20, alignItems: 'center' },
-  footerText: { color: '#666' },
-  link: { color: '#0165FC', fontWeight: 'bold' },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 24,
+  },
+  footerText: {
+    color: "#64748B",
+    fontSize: 14,
+  },
+  footerLink: {
+    color: "#0165FC",
+    fontSize: 14,
+    fontWeight: "600",
+  },
 });
