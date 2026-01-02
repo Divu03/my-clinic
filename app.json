@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "my-clinic",
-    "slug": "my-clinic",
+    "name": "Qure Clinics",
+    "slug": "qure-clinics",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myclinic",
+    "scheme": "qureclinics",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -13,7 +13,8 @@
       "resizeMode": "contain"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.qureclinics.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +22,12 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.qureclinics.app"
     },
     "web": {
       "bundler": "metro",
@@ -31,8 +37,10 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      ["expo-location", {
-        "locationAlwaysAndWhenInUsePermission": "Allow My Clinic to use your location to find nearby doctors."
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow My Clinic to use your location to find nearby doctors."
         }
       ]
     ],

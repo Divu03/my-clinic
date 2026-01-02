@@ -1,27 +1,91 @@
-// app/(private)/_layout.tsx
-import { Ionicons } from '@expo/vector-icons'; // Import icons
-import { Tabs } from 'expo-router';
-import { View } from 'react-native';
-import { ActiveTokenBar } from '../../src/components/ActiveTokenBar';
-import { QueueProvider } from '../../src/context/QueueContext';
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs, usePathname } from "expo-router";
+import { View } from "react-native";
+import { ActiveTokenBar } from "../../src/components/ActiveTokenBar";
 
 export default function PrivateLayout() {
+  const pathname = usePathname();
+
   return (
-    <QueueProvider>
-       <View style={{ flex: 1 }}>
-         {/* This ensures the bar appears on TOP of all screens */}
-         <View style={{ paddingTop: 50, backgroundColor: 'white' }}>
-            <ActiveTokenBar />
-         </View>
-         <Tabs screenOptions={{ tabBarActiveTintColor: '#0165FC', headerShown: false }}>
-            <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({color}) => <Ionicons name="home" size={24} color={color} /> }} />
-            <Tabs.Screen name="map" options={{ title: 'Map', tabBarIcon: ({color}) => <Ionicons name="map" size={24} color={color} /> }} />
-            <Tabs.Screen name="tokens" options={{ title: 'Queue', tabBarIcon: ({color}) => <Ionicons name="people" size={24} color={color} /> }} />
-            <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: ({color}) => <Ionicons name="person" size={24} color={color} /> }} />
-            {/* Hide detail screens from tabs */}
-            <Tabs.Screen name="clinic/[id]" options={{ href: null }} /> 
-         </Tabs>
-       </View>
-    </QueueProvider>
+    <View style={{ flex: 1, backgroundColor: "#FAFBFC" }}>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: "#0165FC",
+          tabBarInactiveTintColor: "#94A3B8",
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: "#FFFFFF",
+            borderTopWidth: 0,
+            elevation: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.05,
+            shadowRadius: 12,
+            height: 85,
+            paddingTop: 8,
+            paddingBottom: 25,
+          },
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: "600",
+          },
+        }}
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: "Home",
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? "home" : "home-outline"}
+                size={24}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="map"
+          options={{
+            title: "Explore",
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? "map" : "map-outline"}
+                size={24}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="tokens"
+          options={{
+            title: "Queue",
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? "ticket" : "ticket-outline"}
+                size={24}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: "Profile",
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? "person" : "person-outline"}
+                size={24}
+                color={color}
+              />
+            ),
+          }}
+        />
+      </Tabs>
+
+      {pathname !== "/tokens" && pathname !== "/map" && <ActiveTokenBar />}
+    </View>
   );
 }
