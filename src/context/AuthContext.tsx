@@ -1,4 +1,4 @@
-import { useRouter, useSegments } from "expo-router";
+import { useRouter } from "expo-router";
 import React, {
   createContext,
   useCallback,
@@ -9,9 +9,6 @@ import React, {
 import { LoginInput, RegisterInput, User } from "../models/types";
 import { AuthService } from "../services/authService";
 
-// ============================================
-// AUTH CONTEXT TYPES
-// ============================================
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
@@ -26,18 +23,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ============================================
-// AUTH PROVIDER
-// ============================================
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const segments = useSegments();
 
-  // ============================================
-  // AUTHENTICATION CHECK ON MOUNT
-  // ============================================
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -46,6 +36,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (isAuth) {
           const userData = await AuthService.getMe();
           setUser(userData);
+        } else {
+          setUser(null);
         }
       } catch (error) {
         console.error("Auth check failed:", error);
@@ -58,27 +50,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     checkAuth();
   }, []);
 
-  // ============================================
-  // ROUTE PROTECTION
-  // ============================================
-  useEffect(() => {
-    if (isLoading) return;
-
-    const inAuthGroup = segments[0] === "(public)";
-    const inPrivateGroup = segments[0] === "(private)";
-
-    if (!user && inPrivateGroup) {
-      // User is not authenticated but trying to access private routes
-      router.replace("/(public)/login");
-    } else if (user && inAuthGroup) {
-      // User is authenticated but on auth screens
-      router.replace("/(private)");
-    }
-  }, [user, segments, isLoading]);
-
-  // ============================================
-  // AUTH METHODS
-  // ============================================
   const login = useCallback(
     async (
       data: LoginInput
@@ -112,11 +83,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const result = await AuthService.register(data);
 
         if (result.success) {
-          // After registration, fetch user data
-          const userData = await AuthService.getMe();
-          setUser(userData);
-          router.replace("/(private)");
-          return { success: true };
+          router.back();
+          return { success: true, message: result.message };
         }
 
         return { success: false, message: result.message };
@@ -154,9 +122,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  // ============================================
-  // CONTEXT VALUE
-  // ============================================
   const value: AuthContextType = {
     user,
     isLoading,
@@ -170,9 +135,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// ============================================
-// HOOK
-// ============================================
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
 

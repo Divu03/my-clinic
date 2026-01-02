@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -15,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 import { useSignupViewModel } from "../../src/viewmodels/AuthViewModel";
 
 export default function SignupScreen() {
@@ -27,8 +27,14 @@ export default function SignupScreen() {
 
   const onSubmit = async () => {
     const result = await handleSignup();
+    if (result.success) {
+      toast.success(result.message || "Registration successful");
+      123456;
+      return;
+    }
     if (!result.success && result.message) {
-      Alert.alert("Registration Failed", result.message);
+      toast.error(result.message);
+      return;
     }
   };
 

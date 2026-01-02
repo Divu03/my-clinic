@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -18,22 +17,15 @@ import { useLoginViewModel } from "../../src/viewmodels/AuthViewModel";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const {
-    email,
-    setEmail,
-    password,
-    setPassword,
-    isLoading,
-    errors,
-    handleLogin,
-  } = useLoginViewModel();
+  const { formData, setFormData, isLoading, errors, handleLogin, updateField } =
+    useLoginViewModel();
 
   const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async () => {
     const result = await handleLogin();
     if (!result.success && result.message) {
-      Alert.alert("Login Failed", result.message);
+      return;
     }
   };
 
@@ -68,8 +60,8 @@ export default function LoginScreen() {
               placeholder="Email"
               placeholderTextColor="#94A3B8"
               style={styles.input}
-              value={email}
-              onChangeText={setEmail}
+              value={formData.email}
+              onChangeText={(val) => updateField("email", val)}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
@@ -84,8 +76,8 @@ export default function LoginScreen() {
               placeholder="Password"
               placeholderTextColor="#94A3B8"
               style={[styles.input, { flex: 1 }]}
-              value={password}
-              onChangeText={setPassword}
+              value={formData.password}
+              onChangeText={(val) => updateField("password", val)}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
             />

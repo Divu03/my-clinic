@@ -12,16 +12,11 @@ import { io, Socket } from "socket.io-client";
 import { QueueStatus, Token } from "../models/types";
 import { TokenManager } from "../services/api";
 import { TokenService } from "../services/token.service";
+import { useAuth } from "./AuthContext";
 
-// ============================================
-// SOCKET CONFIG
-// ============================================
 const SOCKET_URL = "https://qure-backend-api.onrender.com";
 const API_BASE_URL = "https://qure-backend-api.onrender.com/api";
 
-// ============================================
-// CONTEXT TYPES
-// ============================================
 interface QueueContextType {
   isConnected: boolean;
   activeToken: Token | null;
@@ -37,31 +32,23 @@ interface QueueContextType {
 
 const QueueContext = createContext<QueueContextType>({} as QueueContextType);
 
-// ============================================
-// QUEUE PROVIDER
-// ============================================
 export const QueueProvider = ({ children }: { children: React.ReactNode }) => {
-  // Only use state for values that need to trigger re-renders
+  const { user, isLoading: authLoading } = useAuth();
   const [isConnected, setIsConnected] = useState(false);
   const [activeToken, setActiveToken] = useState<Token | null>(null);
   const [queueStatus, setQueueStatus] = useState<QueueStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Use refs for socket and flags to avoid re-renders and stale closures
   const socketRef = useRef<Socket | null>(null);
   const isRefreshingRef = useRef(false);
   const isInitializedRef = useRef(false);
   const activeTokenRef = useRef<Token | null>(null);
 
-  // Sync activeToken ref with state
   useEffect(() => {
     activeTokenRef.current = activeToken;
   }, [activeToken]);
 
-  // ============================================
-  // REFRESH TOKEN HELPER
-  // ============================================
   const refreshAuthToken = useCallback(async (): Promise<string | null> => {
     if (isRefreshingRef.current) return null;
     isRefreshingRef.current = true;
@@ -92,146 +79,180 @@ export const QueueProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  // ============================================
-  // SOCKET INITIALIZATION
-  // ============================================
-  const initSocket = useCallback(async (authToken?: string) => {
-    // Disconnect existing socket
-    if (socketRef.current) {
-      socketRef.current.removeAllListeners();
-      socketRef.current.disconnect();
-      socketRef.current = null;
-    }
-
-    const token = authToken || (await TokenManager.getAccessToken());
-
-    if (!token) {
-      console.log("No auth token, skipping socket connection");
-      return;
-    }
-
-    console.log("Initializing socket connection...");
-    const newSocket = io(SOCKET_URL, {
-      auth: { token },
-      transports: ["websocket"],
-      reconnection: true,
-      reconnectionAttempts: 3,
-      reconnectionDelay: 1000,
-      autoConnect: true,
-    });
-
-    // Connection events
-    newSocket.on("connect", () => {
-      console.log("Socket connected:", newSocket.id);
-      setIsConnected(true);
-      setError(null);
-    });
-
-    newSocket.on("disconnect", (reason) => {
-      console.log("Socket disconnected:", reason);
-      setIsConnected(false);
-    });
-
-    // Handle auth errors with token refresh
-    newSocket.on("connect_error", async (err) => {
-      console.error("Socket connection error:", err.message);
-      setIsConnected(false);
-
-      // Check if it's an auth error
-      const isAuthError =
-        err.message.includes("auth") ||
-        err.message.includes("unauthorized") ||
-        err.message.includes("jwt") ||
-        err.message.includes("token");
-
-      if (isAuthError && !isRefreshingRef.current) {
-        console.log("Auth error detected, attempting token refresh...");
-        const newToken = await refreshAuthToken();
-        if (newToken && socketRef.current) {
-          // Reconnect with new token
-          console.log("Reconnecting socket with new token...");
-          socketRef.current.auth = { token: newToken };
-          socketRef.current.connect();
-        } else {
-          setError("Authentication failed. Please log in again.");
-        }
-      } else if (!isAuthError) {
-        setError("Connection failed");
+  const initSocket = useCallback(
+    async (authToken?: string) => {
+      if (socketRef.current) {
+        socketRef.current.removeAllListeners();
+        socketRef.current.disconnect();
+        socketRef.current = null;
       }
-    });
 
-    // Queue events
-    newSocket.on("join-queue", () => {
-      console.log("Successfully joined queue room");
-    });
+      const token = authToken || (await TokenManager.getAccessToken());
 
-    newSocket.on("join-queue-error", (message: string) => {
-      console.error("Failed to join queue:", message);
-      setError(message);
-    });
+      if (!token) {
+        console.log("No auth token, skipping socket connection");
+        return;
+      }
 
-    newSocket.on("leave-queue", () => {
-      console.log("Left queue room");
-    });
+      console.log("Initializing socket connection...");
+      const newSocket = io(SOCKET_URL, {
+        auth: { token },
+        transports: ["websocket"],
+        reconnection: true,
+        reconnectionAttempts: 3,
+        reconnectionDelay: 1000,
+        autoConnect: true,
+      });
 
-    newSocket.on("queue:status_update", (status: QueueStatus) => {
-      console.log("Queue status update:", status);
-      setQueueStatus(status);
-    });
+      newSocket.on("connect", async () => {
+        console.log("Socket connected:", newSocket.id);
+        setIsConnected(true);
+        setError(null);
+        // Refresh active token when socket connects
+        await refreshActiveToken();
+      });
 
-    newSocket.on("queue:empty", (message: string) => {
-      console.log("Queue empty:", message);
-    });
+      newSocket.on("disconnect", async (reason) => {
+        console.log("Socket disconnected:", reason);
+        setIsConnected(false);
 
-    // Personal token events
-    newSocket.on("queue:your_token_called", (updatedToken: Token) => {
-      console.log("Your token was called!");
-      setActiveToken(updatedToken);
-      Vibration.vibrate([0, 500, 200, 500]);
-      Alert.alert(
-        "🎉 Your Turn!",
-        `Token #${updatedToken.tokenNumber} has been called. Please proceed to the counter.`,
-        [{ text: "OK", style: "default" }]
-      );
-    });
+        const isServerDisconnect =
+          reason === "io server disconnect" || reason === "transport close";
 
-    newSocket.on("queue:your_token_skipped", (updatedToken: Token) => {
-      console.log("Your token was skipped");
-      setActiveToken(updatedToken);
-      Alert.alert(
-        "Token Skipped",
-        "Your token has been skipped. Please contact the staff if this was a mistake.",
-        [{ text: "OK", style: "default" }]
-      );
-    });
+        if (
+          isServerDisconnect &&
+          socketRef.current &&
+          !isRefreshingRef.current
+        ) {
+          console.log(
+            "Server disconnected, attempting token refresh and reconnect..."
+          );
+          const newToken = await refreshAuthToken();
+          if (newToken) {
+            await initSocket(newToken);
+          } else {
+            setError("Authentication expired. Please log in again.");
+          }
+        }
+      });
 
-    newSocket.on("queue:your_token_completed", () => {
-      console.log("Your token was completed");
-      setActiveToken(null);
-      setQueueStatus(null);
-      Alert.alert("Visit Complete", "Thank you for your visit!", [
-        { text: "OK", style: "default" },
-      ]);
-    });
+      newSocket.on("connect_error", async (err) => {
+        console.log("Socket connection error:", err.message);
+        setIsConnected(false);
 
-    socketRef.current = newSocket;
-  }, [refreshAuthToken]);
+        const isAuthError =
+          err.message.includes("auth") ||
+          err.message.includes("unauthorized") ||
+          err.message.includes("jwt") ||
+          err.message.includes("token");
 
-  // ============================================
-  // RECONNECT SOCKET (for manual reconnection)
-  // ============================================
+        if (isAuthError && !isRefreshingRef.current) {
+          console.log("Auth error detected, attempting token refresh...");
+          const newToken = await refreshAuthToken();
+          if (newToken && socketRef.current) {
+            console.log("Reconnecting socket with new token...");
+            socketRef.current.auth = { token: newToken };
+            socketRef.current.connect();
+          } else {
+            setError("Authentication failed. Please log in again.");
+          }
+        } else if (!isAuthError) {
+          setError("Connection failed");
+        }
+      });
+
+      newSocket.on("join-queue", () => {
+        console.log("Successfully joined queue room");
+      });
+
+      newSocket.on("join-queue-error", (message: string) => {
+        console.error("Failed to join queue:", message);
+        setError(message);
+      });
+
+      newSocket.on("leave-queue", () => {
+        console.log("Left queue room");
+      });
+
+      newSocket.on("queue:status_update", (status: QueueStatus) => {
+        console.log("Queue status update:", status);
+        setQueueStatus(status);
+      });
+
+      newSocket.on("queue:empty", (message: string) => {
+        console.log("Queue empty:", message);
+      });
+
+      newSocket.on("queue:your_token_called", (updatedToken: Token) => {
+        console.log("Your token was called!");
+        setActiveToken(updatedToken);
+        Vibration.vibrate([0, 500, 200, 500]);
+        Alert.alert(
+          "🎉 Your Turn!",
+          `Token #${updatedToken.tokenNumber} has been called. Please proceed to the counter.`,
+          [{ text: "OK", style: "default" }]
+        );
+      });
+
+      newSocket.on("queue:your_token_skipped", (updatedToken: Token) => {
+        console.log("Your token was skipped");
+        setActiveToken(updatedToken);
+        Alert.alert(
+          "Token Skipped",
+          "Your token has been skipped. Please contact the staff if this was a mistake.",
+          [{ text: "OK", style: "default" }]
+        );
+      });
+
+      newSocket.on("queue:your_token_completed", () => {
+        console.log("Your token was completed");
+        setActiveToken(null);
+        setQueueStatus(null);
+        Alert.alert("Visit Complete", "Thank you for your visit!", [
+          { text: "OK", style: "default" },
+        ]);
+      });
+
+      socketRef.current = newSocket;
+    },
+    [refreshAuthToken]
+  );
+
   const reconnectSocket = useCallback(async () => {
     console.log("Manual socket reconnection requested");
     await initSocket();
   }, [initSocket]);
 
-  // Initialize socket on mount - only once
+  // Initialize socket when user is authenticated
   useEffect(() => {
-    if (isInitializedRef.current) return;
-    isInitializedRef.current = true;
+    // Wait for auth to finish loading
+    if (authLoading) return;
 
-    initSocket();
+    // If user is authenticated and socket not initialized, initialize it
+    if (user && !isInitializedRef.current) {
+      console.log("User authenticated, initializing socket...");
+      isInitializedRef.current = true;
+      initSocket();
+    }
 
+    // If user is not authenticated, disconnect and reset
+    if (!user && isInitializedRef.current) {
+      console.log("User logged out, disconnecting socket...");
+      isInitializedRef.current = false;
+      if (socketRef.current) {
+        socketRef.current.removeAllListeners();
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+      setIsConnected(false);
+      setActiveToken(null);
+      setQueueStatus(null);
+      setError(null);
+    }
+  }, [user, authLoading, initSocket]);
+
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
       if (socketRef.current) {
         socketRef.current.removeAllListeners();
@@ -239,13 +260,8 @@ export const QueueProvider = ({ children }: { children: React.ReactNode }) => {
         socketRef.current = null;
       }
     };
-    // Only run once on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ============================================
-  // QUEUE METHODS - Use refs to access socket
-  // ============================================
   const joinQueue = useCallback((token: Token) => {
     setActiveToken(token);
     setError(null);
@@ -264,7 +280,6 @@ export const QueueProvider = ({ children }: { children: React.ReactNode }) => {
       socket.emit("leave-queue", token.queueId);
     }
 
-    // Optionally cancel the token via API
     if (token) {
       try {
         await TokenService.cancelToken(token.id);
@@ -284,6 +299,7 @@ export const QueueProvider = ({ children }: { children: React.ReactNode }) => {
 
       try {
         const token = await TokenService.generateTokenForClinic(clinicId);
+        console.log("Generated token:", token);
         joinQueue(token);
         return token;
       } catch (err) {
@@ -300,25 +316,35 @@ export const QueueProvider = ({ children }: { children: React.ReactNode }) => {
 
   const refreshActiveToken = useCallback(async () => {
     try {
-      const tokens = await TokenService.getMyActiveTokens();
-      if (tokens.length > 0) {
-        const token = tokens[0];
+      if (!user) return;
+      console.log("Refreshing active token...");
+      const token = await TokenService.getMyActiveTokens(user.id);
+      if (token) {
+        console.log("Found active token:", token);
         setActiveToken(token);
 
-        // Rejoin the queue room using ref
         const socket = socketRef.current;
         if (socket?.connected) {
           socket.emit("join-queue", token.queueId);
         }
+      } else {
+        console.log("No active tokens found");
+        setActiveToken(null);
       }
     } catch (err) {
       console.error("Failed to refresh active token:", err);
     }
   }, []);
 
-  // ============================================
-  // CONTEXT VALUE
-  // ============================================
+  // Debug: Log if function is undefined (should never happen)
+  if (typeof generateTokenForClinic !== "function") {
+    console.error(
+      "ERROR: generateTokenForClinic is not a function!",
+      typeof generateTokenForClinic,
+      generateTokenForClinic
+    );
+  }
+
   const value: QueueContextType = {
     isConnected,
     activeToken,
@@ -337,9 +363,6 @@ export const QueueProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// ============================================
-// HOOK
-// ============================================
 export const useQueue = (): QueueContextType => {
   const context = useContext(QueueContext);
 

@@ -1,3 +1,4 @@
+import * as Location from "expo-location";
 import React, {
   createContext,
   useCallback,
@@ -6,19 +7,15 @@ import React, {
   useRef,
   useState,
 } from "react";
-import * as Location from "expo-location";
+import { toast } from "sonner-native";
 import { Clinic, ClinicTypeValue } from "../models/types";
 import { ClinicService } from "../services/clinicService";
+import { useAuth } from "./AuthContext";
 
-// ============================================
-// FILTER CONTEXT TYPES
-// ============================================
 interface FilterContextType {
-  // Location
   userLocation: { latitude: number; longitude: number } | null;
   fetchLocation: () => Promise<{ latitude: number; longitude: number } | null>;
 
-  // Filters
   radius: number;
   setRadius: (radius: number) => void;
   showAllClinics: boolean;
@@ -28,57 +25,56 @@ interface FilterContextType {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
 
-  // Filter Modal
   showFilters: boolean;
   setShowFilters: (show: boolean) => void;
 
-  // Shared Clinics Data
   clinics: Clinic[];
   loading: boolean;
   error: string | null;
   refreshClinics: () => Promise<void>;
 
-  // Refs for callbacks
-  radiusRef: React.MutableRefObject<number>;
-  showAllClinicsRef: React.MutableRefObject<boolean>;
-  userLocationRef: React.MutableRefObject<{ latitude: number; longitude: number } | null>;
+  radiusRef: React.RefObject<number>;
+  showAllClinicsRef: React.RefObject<boolean>;
+  userLocationRef: React.RefObject<{
+    latitude: number;
+    longitude: number;
+  } | null>;
 
-  // Actions
   clearFilters: () => void;
 }
 
 const FilterContext = createContext<FilterContextType>({} as FilterContextType);
 
-// ============================================
-// FILTER PROVIDER
-// ============================================
 export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
-  // Location state
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
   } | null>(null);
 
-  // Filter states
   const [radius, setRadiusState] = useState(50);
   const [showAllClinics, setShowAllClinicsState] = useState(false);
-  const [selectedType, setSelectedType] = useState<ClinicTypeValue | null>(null);
+  const [selectedType, setSelectedType] = useState<ClinicTypeValue | null>(
+    null
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Shared clinics state
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Refs for stable access in callbacks (avoid stale closures)
   const radiusRef = useRef(50);
   const showAllClinicsRef = useRef(false);
-  const userLocationRef = useRef<{ latitude: number; longitude: number } | null>(null);
+  const userLocationRef = useRef<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const isFetchingRef = useRef(false);
   const isInitializedRef = useRef(false);
+  const prevSearchQueryRef = useRef("");
 
-  // Sync refs with state
   useEffect(() => {
     radiusRef.current = radius;
   }, [radius]);
@@ -91,9 +87,6 @@ export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
     userLocationRef.current = userLocation;
   }, [userLocation]);
 
-  // ============================================
-  // SETTERS WITH REF SYNC
-  // ============================================
   const setRadius = useCallback((value: number) => {
     setRadiusState(value);
     radiusRef.current = value;
@@ -104,14 +97,13 @@ export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
     showAllClinicsRef.current = value;
   }, []);
 
-  // ============================================
-  // FETCH LOCATION
-  // ============================================
   const fetchLocation = useCallback(async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        console.log("Location permission denied");
+        toast.error(
+          "Location permission denied. Please enable location permissions in your device settings."
+        );
         return null;
       }
 
@@ -133,13 +125,12 @@ export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  // ============================================
-  // FETCH CLINICS (Shared function)
-  // ============================================
   const refreshClinics = useCallback(async () => {
-    // Prevent duplicate calls
+    if (!isAuthenticated) {
+      return;
+    }
+
     if (isFetchingRef.current) {
-      console.log("FilterContext: Already fetching, skipping...");
       return;
     }
     isFetchingRef.current = true;
@@ -148,81 +139,82 @@ export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(true);
       setError(null);
 
-      // Get location if needed
       let location = userLocationRef.current;
       if (!location && !showAllClinicsRef.current) {
         location = await fetchLocation();
       }
 
-      // Build query params
       const params: any = {
         page: 1,
-        limit: 50, // Fetch more for map view
+        limit: 50,
       };
 
-      // Add type filter if selected
       if (selectedType) {
         params.type = selectedType;
       }
 
-      // Add search query if provided
       if (searchQuery) {
         params.query = searchQuery;
       }
 
-      // Add location filter if not showing all clinics
       if (!showAllClinicsRef.current && location) {
         params.latitude = location.latitude;
         params.longitude = location.longitude;
         params.radius = radiusRef.current;
       }
 
-      console.log("FilterContext: Fetching clinics with params:", JSON.stringify(params, null, 2));
       const response = await ClinicService.getClinics(params);
       const fetchedClinics = response.clinics;
+      console.log(`FilterContext: Fetched ${fetchedClinics.length} clinics`);
 
       console.log(`FilterContext: Fetched ${fetchedClinics.length} clinics`);
       setClinics(fetchedClinics);
     } catch (err) {
-      console.error("Failed to fetch clinics:", err);
+      console.log("Failed to fetch clinics:", err);
       setError("Failed to load clinics");
       setClinics([]);
     } finally {
       setLoading(false);
       isFetchingRef.current = false;
     }
-  }, [fetchLocation, selectedType, searchQuery]);
+  }, [fetchLocation, selectedType, searchQuery, isAuthenticated]);
 
-  // ============================================
-  // INITIAL LOAD ONLY
-  // ============================================
   useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      isInitializedRef.current = false;
+      setClinics([]);
+    }
+  }, [isAuthenticated, authLoading]);
+
+  // Initial load - only runs once when auth is ready
+  useEffect(() => {
+    if (authLoading || !isAuthenticated) return;
     if (isInitializedRef.current) return;
+
+    console.log("FilterContext: Initial fetch triggered");
     isInitializedRef.current = true;
-    
-    // Initial load only
     refreshClinics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
-  // ============================================
-  // AUTO-REFRESH ONLY FOR SEARCH QUERY (as user types)
-  // ============================================
+  // Search query changes - only runs after initialization and when query actually changes
   useEffect(() => {
-    // Only auto-refresh for search query changes (debounced)
+    if (authLoading || !isAuthenticated) return;
     if (!isInitializedRef.current) return;
-    
+
+    // Skip if searchQuery hasn't actually changed (prevents initial mount trigger)
+    if (prevSearchQueryRef.current === searchQuery) return;
+    prevSearchQueryRef.current = searchQuery;
+
+    console.log("FilterContext: Search query changed, triggering fetch");
     const timeoutId = setTimeout(() => {
       refreshClinics();
-    }, 500); // Debounce search by 500ms
+    }, 500);
 
     return () => clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
-  // ============================================
-  // CLEAR FILTERS
-  // ============================================
   const clearFilters = useCallback(() => {
     setSearchQuery("");
     setSelectedType(null);
@@ -230,15 +222,10 @@ export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
     setShowAllClinics(false);
   }, [setRadius, setShowAllClinics]);
 
-  // ============================================
-  // CONTEXT VALUE
-  // ============================================
   const value: FilterContextType = {
-    // Location
     userLocation,
     fetchLocation,
 
-    // Filters
     radius,
     setRadius,
     showAllClinics,
@@ -248,22 +235,18 @@ export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
     searchQuery,
     setSearchQuery,
 
-    // Modal
     showFilters,
     setShowFilters,
 
-    // Shared Clinics
     clinics,
     loading,
     error,
     refreshClinics,
 
-    // Refs
     radiusRef,
     showAllClinicsRef,
     userLocationRef,
 
-    // Actions
     clearFilters,
   };
 
@@ -272,9 +255,6 @@ export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// ============================================
-// HOOK
-// ============================================
 export const useFilters = (): FilterContextType => {
   const context = useContext(FilterContext);
 

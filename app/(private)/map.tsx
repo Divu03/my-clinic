@@ -14,6 +14,7 @@ import {
   ViewToken,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FilterBottomSheet } from "../../src/components/FilterBottomSheet";
 import { Clinic } from "../../src/models/types";
 import { useMapViewModel } from "../../src/viewmodels/useMapViewModel";
@@ -171,6 +172,8 @@ export default function MapScreen() {
     applyFilters,
   } = useMapViewModel();
 
+  const insets = useSafeAreaInsets();
+
   const flatListRef = useRef<FlatList>(null);
 
   const onViewableItemsChanged = useCallback(
@@ -279,7 +282,7 @@ export default function MapScreen() {
       </MapView>
 
       {/* Header Bar */}
-      <View style={styles.header}>
+      <View style={[styles.header, { marginTop: insets.top }]}>
         <TouchableOpacity
           style={styles.headerBtn}
           onPress={() => router.back()}
@@ -417,7 +420,7 @@ const styles = StyleSheet.create({
   },
   header: {
     position: "absolute",
-    top: 20,
+    top: 10,
     left: 16,
     right: 16,
     flexDirection: "row",
@@ -452,7 +455,7 @@ const styles = StyleSheet.create({
   },
   filterBadge: {
     position: "absolute",
-    top: 115,
+    top: 140,
     alignSelf: "center",
     backgroundColor: "rgba(30,41,59,0.9)",
     paddingHorizontal: 14,

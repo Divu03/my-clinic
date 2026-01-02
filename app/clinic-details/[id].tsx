@@ -16,6 +16,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 import { useQueue } from "../../src/context/QueueContext";
 import { Clinic } from "../../src/models/types";
 import { ClinicService } from "../../src/services/clinicService";
@@ -40,12 +41,20 @@ const ImageCarousel = ({
   const flatListRef = useRef<FlatList>(null);
 
   // Combine logo and images for carousel (images first, then logo at end if exists)
-  const allImages = [...(images || []), ...(logo && !images?.includes(logo) ? [logo] : [])];
+  const allImages = [
+    ...(images || []),
+    ...(logo && !images?.includes(logo) ? [logo] : []),
+  ];
 
   if (allImages.length === 0) {
     // No images, show placeholder
     return (
-      <View style={[carouselStyles.imagePlaceholder, { backgroundColor: accentColor }]}>
+      <View
+        style={[
+          carouselStyles.imagePlaceholder,
+          { backgroundColor: accentColor },
+        ]}
+      >
         <Ionicons name="medical" size={60} color="white" />
         <Text style={carouselStyles.placeholderText}>Clinic</Text>
       </View>
@@ -160,10 +169,13 @@ const carouselStyles = StyleSheet.create({
 // MAIN SCREEN
 // ============================================
 export default function ClinicDetailsScreen() {
-  const { id, distance } = useLocalSearchParams<{ id: string; distance?: string }>();
+  const { id, distance } = useLocalSearchParams<{
+    id: string;
+    distance?: string;
+  }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  
+
   // Parse distance from route params
   const distanceKm = distance ? parseFloat(distance) : null;
   const {
@@ -223,7 +235,8 @@ export default function ClinicDetailsScreen() {
         error?.response?.data?.message ||
         error?.message ||
         "Unable to join queue. The clinic may not have an active queue for today.";
-      Alert.alert("Failed", errorMessage);
+
+      toast.error(errorMessage);
     } finally {
       setJoining(false);
     }
@@ -376,7 +389,9 @@ export default function ClinicDetailsScreen() {
             {/* Opening Hours Card */}
             {clinic.openingHours && (
               <View style={styles.infoCard}>
-                <View style={[styles.infoCardIcon, { backgroundColor: "#EFF6FF" }]}>
+                <View
+                  style={[styles.infoCardIcon, { backgroundColor: "#EFF6FF" }]}
+                >
                   <Ionicons name="time-outline" size={20} color="#0165FC" />
                 </View>
                 <View style={styles.infoCardContent}>
@@ -391,7 +406,9 @@ export default function ClinicDetailsScreen() {
             {/* Distance Card */}
             {distanceKm !== null && (
               <View style={styles.infoCard}>
-                <View style={[styles.infoCardIcon, { backgroundColor: "#F0FDF4" }]}>
+                <View
+                  style={[styles.infoCardIcon, { backgroundColor: "#F0FDF4" }]}
+                >
                   <Ionicons name="location-outline" size={20} color="#10B981" />
                 </View>
                 <View style={styles.infoCardContent}>
@@ -679,7 +696,6 @@ const styles = StyleSheet.create({
     borderColor: "#0165FC",
   },
   directionsBtnText: {
-    color: "#0165FC",
     fontSize: 14,
     fontWeight: "600",
     color: "#475569",

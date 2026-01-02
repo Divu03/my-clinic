@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../src/context/AuthContext";
 
 // ============================================
@@ -24,7 +25,11 @@ const MenuItem = ({
   onPress?: () => void;
   danger?: boolean;
 }) => (
-  <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
+  <TouchableOpacity
+    style={styles.menuItem}
+    onPress={onPress}
+    activeOpacity={0.7}
+  >
     <View style={[styles.menuIcon, danger && { backgroundColor: "#FEE2E2" }]}>
       <Ionicons
         name={icon as any}
@@ -44,6 +49,7 @@ const MenuItem = ({
 // ============================================
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const handleLogout = () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -54,85 +60,106 @@ export default function ProfileScreen() {
 
   const getInitials = () => {
     if (!user) return "?";
-    return `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase();
+    return `${user.firstName?.[0] || ""}${
+      user.lastName?.[0] || ""
+    }`.toUpperCase();
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Profile Header */}
-      <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{getInitials()}</Text>
+    <View style={styles.wrapper}>
+      <View style={[styles.safeAreaTop, { height: insets.top }]} />
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Profile Header */}
+        <View style={styles.header}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{getInitials()}</Text>
+          </View>
+          <Text style={styles.userName}>
+            {user?.firstName} {user?.lastName}
+          </Text>
+          <Text style={styles.userEmail}>{user?.email}</Text>
+          <View style={styles.roleBadge}>
+            <Text style={styles.roleText}>{user?.role || "Patient"}</Text>
+          </View>
         </View>
-        <Text style={styles.userName}>
-          {user?.firstName} {user?.lastName}
-        </Text>
-        <Text style={styles.userEmail}>{user?.email}</Text>
-        <View style={styles.roleBadge}>
-          <Text style={styles.roleText}>{user?.role || "Patient"}</Text>
-        </View>
-      </View>
 
-      {/* Stats */}
-      <View style={styles.statsRow}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>12</Text>
-          <Text style={styles.statLabel}>Visits</Text>
+        {/* Stats */}
+        <View style={styles.statsRow}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>12</Text>
+            <Text style={styles.statLabel}>Visits</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>4</Text>
+            <Text style={styles.statLabel}>Saved</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>2</Text>
+            <Text style={styles.statLabel}>Reviews</Text>
+          </View>
         </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>4</Text>
-          <Text style={styles.statLabel}>Saved</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>2</Text>
-          <Text style={styles.statLabel}>Reviews</Text>
-        </View>
-      </View>
 
-      {/* Menu Sections */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account</Text>
-        <View style={styles.menuCard}>
-          <MenuItem icon="person-outline" label="Edit Profile" />
-          <MenuItem icon="notifications-outline" label="Notifications" />
-          <MenuItem icon="shield-outline" label="Privacy" />
+        {/* Menu Sections */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          <View style={styles.menuCard}>
+            <MenuItem icon="person-outline" label="Edit Profile" />
+            <MenuItem icon="notifications-outline" label="Notifications" />
+            <MenuItem icon="shield-outline" label="Privacy" />
+          </View>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Preferences</Text>
-        <View style={styles.menuCard}>
-          <MenuItem icon="language-outline" label="Language" />
-          <MenuItem icon="location-outline" label="Location" />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Preferences</Text>
+          <View style={styles.menuCard}>
+            <MenuItem icon="language-outline" label="Language" />
+            <MenuItem icon="location-outline" label="Location" />
+          </View>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Support</Text>
-        <View style={styles.menuCard}>
-          <MenuItem icon="help-circle-outline" label="Help Center" />
-          <MenuItem icon="document-text-outline" label="Terms & Privacy" />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Support</Text>
+          <View style={styles.menuCard}>
+            <MenuItem icon="help-circle-outline" label="Help Center" />
+            <MenuItem icon="document-text-outline" label="Terms & Privacy" />
+          </View>
         </View>
-      </View>
 
-      {/* Logout */}
-      <View style={styles.section}>
-        <View style={styles.menuCard}>
-          <MenuItem icon="log-out-outline" label="Logout" onPress={handleLogout} danger />
+        {/* Logout */}
+        <View style={styles.section}>
+          <View style={styles.menuCard}>
+            <MenuItem
+              icon="log-out-outline"
+              label="Logout"
+              onPress={handleLogout}
+              danger
+            />
+          </View>
         </View>
-      </View>
 
-      <Text style={styles.version}>Version 1.0.0</Text>
-    </ScrollView>
+        <Text style={styles.version}>Version 1.0.0</Text>
+        <View style={{ height: 20 }} />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  safeAreaTop: {
+    backgroundColor: "white",
+  },
   container: {
     flex: 1,
     backgroundColor: "#FAFBFC",
+  },
+  contentContainer: {
+    paddingBottom: 40,
   },
   header: {
     alignItems: "center",
@@ -141,6 +168,8 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
+    marginHorizontal: 16,
+    borderRadius: 12,
   },
   avatar: {
     width: 72,
@@ -245,9 +274,8 @@ const styles = StyleSheet.create({
   },
   version: {
     textAlign: "center",
-    color: "#CBD5E1",
+    color: "#64748B",
     fontSize: 11,
     marginTop: 24,
-    marginBottom: 40,
   },
 });

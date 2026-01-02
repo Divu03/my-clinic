@@ -23,11 +23,10 @@ export const AuthService = {
       const response = await api.post<AuthResponse>("/auth/register", data);
 
       if (response.data.success) {
-        const { accessToken, refreshToken } = response.data.data;
-        await TokenManager.setTokens(accessToken, refreshToken);
+        return { success: true, message: response.data.message };
       }
 
-      return { success: true };
+      return { success: false, message: response.data.message };
     } catch (error) {
       const axiosError = error as AxiosError<ApiError>;
       const message =
@@ -132,4 +131,3 @@ export const AuthService = {
 };
 
 export default AuthService;
-

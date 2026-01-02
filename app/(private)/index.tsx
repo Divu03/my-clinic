@@ -195,7 +195,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <View style={[styles.container]}>
+    <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
       {/* Fixed Header */}
       <View style={styles.fixedHeader}>
         {/* Greeting */}

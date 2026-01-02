@@ -34,18 +34,18 @@ export const TokenService = {
    * Get user's active tokens
    * GET /api/tokens/my-active
    */
-  getMyActiveTokens: async (): Promise<Token[]> => {
+  getMyActiveTokens: async (userId: string): Promise<Token | null> => {
     try {
-      const response = await api.get<ApiResponse<Token[]>>("/tokens/my-active");
+      const response = await api.get<ApiResponse<Token>>(`/tokens/${userId}`);
 
       if (response.data.success) {
-        return response.data.data;
+        return response.data.data as Token;
       }
 
-      return [];
+      return null;
     } catch (error) {
-      console.error("Failed to fetch active tokens:", error);
-      return [];
+      console.log("Failed to fetch active tokens:", error);
+      return null;
     }
   },
 
@@ -90,9 +90,7 @@ export const TokenService = {
    */
   getClinicTodayQueue: async (clinicId: string): Promise<Queue | null> => {
     try {
-      const response = await api.get<ApiResponse<Queue>>(
-        `/queues/clinic/${clinicId}/today`
-      );
+      const response = await api.get<ApiResponse<Queue>>(`/queues/${clinicId}`);
 
       if (response.data.success) {
         return response.data.data;
@@ -105,7 +103,7 @@ export const TokenService = {
         // No queue for today
         return null;
       }
-      console.error("Failed to fetch clinic queue:", error);
+      console.log("Failed to fetch clinic queue:", error);
       return null;
     }
   },
@@ -141,7 +139,7 @@ export const TokenService = {
     try {
       // Step 1: Get today's queue for the clinic
       const queue = await TokenService.getClinicTodayQueue(clinicId);
-
+      console.log("Queue:", queue);
       if (!queue) {
         throw new Error(
           "No active queue for this clinic today. The clinic may not have opened their queue yet."
@@ -154,9 +152,8 @@ export const TokenService = {
         );
       }
 
-      // Step 2: Generate the token for this queue
       const token = await TokenService.generateToken(queue.id);
-
+      console.log("Token:", token);
       return token;
     } catch (error) {
       if (error instanceof Error) {

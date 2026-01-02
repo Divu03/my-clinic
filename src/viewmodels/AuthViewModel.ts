@@ -1,6 +1,11 @@
 import { useCallback, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { loginSchema, RegisterInput, registerSchema } from "../models/types";
+import {
+  LoginInput,
+  loginSchema,
+  RegisterInput,
+  registerSchema,
+} from "../models/types";
 
 // ============================================
 // LOGIN VIEW MODEL
@@ -8,13 +13,29 @@ import { loginSchema, RegisterInput, registerSchema } from "../models/types";
 export const useLoginViewModel = () => {
   const { login, isLoading: authLoading } = useAuth();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState<LoginInput>({
+    email: "",
+    password: "",
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const updateField = useCallback(
+    (field: keyof RegisterInput, value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      if (errors[field]) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
+      }
+    },
+    [errors]
+  );
+
   const validate = useCallback((): boolean => {
-    const result = loginSchema.safeParse({ email, password });
+    const result = loginSchema.safeParse(formData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -28,38 +49,37 @@ export const useLoginViewModel = () => {
 
     setErrors({});
     return true;
-  }, [email, password]);
+  }, [formData]);
 
   const handleLogin = useCallback(async (): Promise<{
     success: boolean;
     message?: string;
   }> => {
     if (!validate()) {
-      return { success: false, message: "Please fix the errors above" };
+      return { success: false, message: "Please fix the errors below" };
     }
 
     setIsLoading(true);
     try {
-      const result = await login({ email, password });
+      const result = await login(formData);
       return result;
     } finally {
       setIsLoading(false);
     }
-  }, [email, password, login, validate]);
+  }, [formData, login, validate]);
 
   const clearErrors = useCallback(() => {
     setErrors({});
   }, []);
 
   return {
-    email,
-    setEmail,
-    password,
-    setPassword,
+    formData,
+    setFormData,
     isLoading: isLoading || authLoading,
     errors,
     handleLogin,
     clearErrors,
+    updateField,
   };
 };
 
@@ -82,7 +102,6 @@ export const useSignupViewModel = () => {
   const updateField = useCallback(
     (field: keyof RegisterInput, value: string) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
-      // Clear error for the field being updated
       if (errors[field]) {
         setErrors((prev) => {
           const newErrors = { ...prev };
@@ -116,7 +135,7 @@ export const useSignupViewModel = () => {
     message?: string;
   }> => {
     if (!validate()) {
-      return { success: false, message: "Please fix the errors above" };
+      return { success: false, message: "Please fix the errors below" };
     }
 
     setIsLoading(true);
