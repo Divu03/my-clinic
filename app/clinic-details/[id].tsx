@@ -227,7 +227,10 @@ export default function ClinicDetailsScreen() {
       Alert.alert("Success!", "You've joined the queue.", [
         {
           text: "View Token",
-          onPress: () => router.push("/(private)/tokens"),
+          onPress: () => {
+            router.dismissAll();
+            router.navigate("/(private)/tokens");
+          },
         },
       ]);
     } catch (error: any) {
@@ -489,23 +492,41 @@ export default function ClinicDetailsScreen() {
 
       {/* Bottom CTA */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
-        <TouchableOpacity
-          style={[
-            styles.joinBtn,
-            (joining || queueLoading) && styles.joinBtnDisabled,
-          ]}
-          onPress={handleJoinQueue}
-          disabled={joining || queueLoading}
-        >
-          {joining || queueLoading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <>
+        {activeToken === null ? (
+          <TouchableOpacity
+            style={[
+              styles.joinBtn,
+              (joining || queueLoading) && styles.joinBtnDisabled,
+            ]}
+            onPress={handleJoinQueue}
+            disabled={joining || queueLoading}
+          >
+            {joining || queueLoading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <>
+                <Ionicons name="ticket" size={20} color="white" />
+                <Text style={styles.joinBtnText}>Join Queue</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.disabledQueueContainer}>
+            <Text style={styles.disabledQueueText}>
+              You are already in a queue
+            </Text>
+            <TouchableOpacity
+              style={styles.disabledQueueBtn}
+              onPress={() => {
+                router.dismissAll();
+                router.navigate("/(private)/tokens");
+              }}
+            >
               <Ionicons name="ticket" size={20} color="white" />
-              <Text style={styles.joinBtnText}>Join Queue</Text>
-            </>
-          )}
-        </TouchableOpacity>
+              <Text style={styles.disabledQueueBtnText}>View Queue Status</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -754,6 +775,29 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   joinBtnText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  disabledQueueContainer: {
+    gap: 8,
+  },
+  disabledQueueText: {
+    textAlign: "center",
+    fontSize: 13,
+    color: "#64748B",
+    marginBottom: 4,
+  },
+  disabledQueueBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#0165FC",
+    paddingVertical: 16,
+    borderRadius: 14,
+    gap: 8,
+  },
+  disabledQueueBtnText: {
     color: "white",
     fontSize: 16,
     fontWeight: "600",
