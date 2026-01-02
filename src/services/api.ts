@@ -8,7 +8,7 @@ import * as SecureStore from "expo-secure-store";
 // ============================================
 // CONFIGURATION
 // ============================================
-const API_BASE_URL = "https://qure-backend-api.onrender.com/api";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 // Token storage keys
 const ACCESS_TOKEN_KEY = "accessToken";

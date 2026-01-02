@@ -7,15 +7,16 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Alert, Vibration } from "react-native";
+import { Vibration } from "react-native";
 import { io, Socket } from "socket.io-client";
+import { toast } from "sonner-native";
 import { QueueStatus, Token } from "../models/types";
 import { TokenManager } from "../services/api";
 import { TokenService } from "../services/token.service";
 import { useAuth } from "./AuthContext";
 
-const SOCKET_URL = "https://qure-backend-api.onrender.com";
-const API_BASE_URL = "https://qure-backend-api.onrender.com/api";
+const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL;
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 interface QueueContextType {
   isConnected: boolean;
@@ -181,26 +182,23 @@ export const QueueProvider = ({ children }: { children: React.ReactNode }) => {
 
       newSocket.on("queue:empty", (message: string) => {
         console.log("Queue empty:", message);
+        toast.info("Queue is empty. Please wait for the next patient to join.");
       });
 
       newSocket.on("queue:your_token_called", (updatedToken: Token) => {
         console.log("Your token was called!");
         setActiveToken(updatedToken);
         Vibration.vibrate([0, 500, 200, 500]);
-        Alert.alert(
-          "🎉 Your Turn!",
-          `Token #${updatedToken.tokenNumber} has been called. Please proceed to the counter.`,
-          [{ text: "OK", style: "default" }]
+        toast.info(
+          `🎉 Your Turn! \n Token #${updatedToken.tokenNumber} has been called. Please proceed to the counter.`
         );
       });
 
       newSocket.on("queue:your_token_skipped", (updatedToken: Token) => {
         console.log("Your token was skipped");
         setActiveToken(updatedToken);
-        Alert.alert(
-          "Token Skipped",
-          "Your token has been skipped. Please contact the staff if this was a mistake.",
-          [{ text: "OK", style: "default" }]
+        toast.info(
+          "Your token has been skipped. Please contact the staff if this was a mistake."
         );
       });
 
@@ -208,9 +206,15 @@ export const QueueProvider = ({ children }: { children: React.ReactNode }) => {
         console.log("Your token was completed");
         setActiveToken(null);
         setQueueStatus(null);
-        Alert.alert("Visit Complete", "Thank you for your visit!", [
-          { text: "OK", style: "default" },
-        ]);
+        toast.info("Thank you for your visit! Please come back soon.");
+      });
+
+      newSocket.on("queue:your_token_updated", (updatedToken: Token) => {
+        console.log("Your token was updated");
+        setActiveToken(updatedToken);
+        toast.info(
+          `Your token number has been updated to #${updatedToken.tokenNumber}`
+        );
       });
 
       socketRef.current = newSocket;
