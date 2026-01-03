@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 import { useQueue } from "../../src/context/QueueContext";
 
 export default function TokensScreen() {
@@ -38,6 +39,7 @@ export default function TokensScreen() {
     if (!queueStatus || !activeToken) return;
     if (queueStatus.currentTokenNo > activeToken.tokenNumber) {
       refreshActiveToken();
+      toast.success("Congratulations 🎉! Your token has been completed. ");
     }
   }, [queueStatus, activeToken]);
 
