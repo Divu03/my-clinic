@@ -253,7 +253,7 @@ export default function TokensScreen() {
         <TouchableOpacity
           style={styles.leaveBtn}
           onPress={handleLeaveQueue}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
         >
           <Ionicons name="exit-outline" size={20} color="#EF4444" />
           <Text style={styles.leaveBtnText}>Leave Queue</Text>
@@ -319,7 +319,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 4,
   },
   findBtnText: {
     color: "white",
@@ -357,7 +356,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
-    elevation: 4,
   },
   statusBadge: {
     flexDirection: "row",
@@ -395,7 +393,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
-    elevation: 8,
   },
   tokenNumber: {
     fontSize: 56,

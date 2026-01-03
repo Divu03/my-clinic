@@ -328,7 +328,11 @@ export default function ClinicDetailsScreen() {
         <Text style={styles.errorSubtitle}>
           The clinic you're looking for doesn't exist
         </Text>
-        <TouchableOpacity style={styles.errorBtn} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.errorBtn}
+          onPress={() => router.back()}
+          activeOpacity={0.8}
+        >
           <Text style={styles.errorBtnText}>Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -356,6 +360,7 @@ export default function ClinicDetailsScreen() {
         <TouchableOpacity
           style={[styles.backButton, { top: insets.top + 10 }]}
           onPress={() => router.back()}
+          activeOpacity={0.8}
         >
           <Ionicons name="arrow-back" size={22} color="#1E293B" />
         </TouchableOpacity>
@@ -437,6 +442,7 @@ export default function ClinicDetailsScreen() {
               <TouchableOpacity
                 style={styles.directionsBtn}
                 onPress={handleDirections}
+                activeOpacity={0.8}
               >
                 <Ionicons name="navigate-outline" size={18} color="#0165FC" />
                 <Text style={styles.directionsBtnText}>Get Directions</Text>
@@ -453,6 +459,7 @@ export default function ClinicDetailsScreen() {
                   <TouchableOpacity
                     style={styles.contactBtn}
                     onPress={handleCall}
+                    activeOpacity={0.8}
                   >
                     <Ionicons name="call" size={20} color="#0165FC" />
                     <Text style={styles.contactBtnText}>Call</Text>
@@ -462,6 +469,7 @@ export default function ClinicDetailsScreen() {
                   <TouchableOpacity
                     style={styles.contactBtn}
                     onPress={handleEmail}
+                    activeOpacity={0.8}
                   >
                     <Ionicons name="mail" size={20} color="#0165FC" />
                     <Text style={styles.contactBtnText}>Email</Text>
@@ -471,6 +479,7 @@ export default function ClinicDetailsScreen() {
                   <TouchableOpacity
                     style={styles.contactBtn}
                     onPress={handleWebsite}
+                    activeOpacity={0.8}
                   >
                     <Ionicons name="globe" size={20} color="#0165FC" />
                     <Text style={styles.contactBtnText}>Website</Text>
@@ -500,6 +509,7 @@ export default function ClinicDetailsScreen() {
             ]}
             onPress={handleJoinQueue}
             disabled={joining || queueLoading}
+            activeOpacity={0.8}
           >
             {joining || queueLoading ? (
               <ActivityIndicator color="white" />
@@ -521,6 +531,7 @@ export default function ClinicDetailsScreen() {
                 router.dismissAll();
                 router.navigate("/tokens");
               }}
+              activeOpacity={0.8}
             >
               <Ionicons name="ticket" size={20} color="white" />
               <Text style={styles.disabledQueueBtnText}>View Queue Status</Text>
@@ -594,7 +605,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    elevation: 4,
   },
   content: {
     padding: 20,
@@ -760,7 +770,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
-    elevation: 10,
   },
   joinBtn: {
     flexDirection: "row",

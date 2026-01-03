@@ -40,7 +40,7 @@ export default function ChangePassword() {
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backButton}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
           >
             <Ionicons name="arrow-back" size={24} color="#1E293B" />
           </TouchableOpacity>
@@ -77,7 +77,7 @@ export default function ChangePassword() {
                 <TouchableOpacity
                   onPress={() => setShowOldPassword(!showOldPassword)}
                   style={styles.eyeIcon}
-                  activeOpacity={0.7}
+                  activeOpacity={0.8}
                 >
                   <Ionicons
                     name={showOldPassword ? "eye-off" : "eye"}
@@ -112,7 +112,7 @@ export default function ChangePassword() {
                 <TouchableOpacity
                   onPress={() => setShowNewPassword(!showNewPassword)}
                   style={styles.eyeIcon}
-                  activeOpacity={0.7}
+                  activeOpacity={0.8}
                 >
                   <Ionicons
                     name={showNewPassword ? "eye-off" : "eye"}
@@ -149,7 +149,7 @@ export default function ChangePassword() {
                 <TouchableOpacity
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                   style={styles.eyeIcon}
-                  activeOpacity={0.7}
+                  activeOpacity={0.8}
                 >
                   <Ionicons
                     name={showConfirmPassword ? "eye-off" : "eye"}
@@ -174,7 +174,7 @@ export default function ChangePassword() {
             ]}
             onPress={onSubmit}
             disabled={isLoading}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
           >
             {isLoading ? (
               <ActivityIndicator color="white" />

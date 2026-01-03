@@ -130,6 +130,57 @@ export const TokenService = {
   },
 
   /**
+   * Get current serving token by queue ID and token number
+   * GET /api/tokens/queue/:queueId?tokenNumber=:tokenNumber&status=IN_PROGRESS
+   */
+  getCurrentToken: async (
+    queueId: string,
+    tokenNumber: number
+  ): Promise<Token | null> => {
+    try {
+      // Try to get token by queue ID and token number
+      // The backend should support querying tokens by queue and token number
+      const response = await api.get<ApiResponse<Token>>(
+        `/tokens/queue/${queueId}?tokenNumber=${tokenNumber}&status=CALLED`
+      );
+
+      if (response.data.success) {
+        console.log(response.data.data);
+        return response.data.data;
+      }
+      return null;
+    } catch (error) {
+      // If the endpoint doesn't exist, try alternative approach
+      console.log(
+        "Failed to fetch current token, trying alternative method:",
+        error
+      );
+
+      // Alternative: Get all tokens for queue and find the matching one
+      try {
+        const allTokensResponse = await api.get<ApiResponse<Token[]>>(
+          `/tokens/queue/${queueId}?status=IN_PROGRESS`
+        );
+
+        if (
+          allTokensResponse.data.success &&
+          Array.isArray(allTokensResponse.data.data)
+        ) {
+          const tokens = allTokensResponse.data.data as Token[];
+          const currentToken = tokens.find(
+            (token) => token.tokenNumber === tokenNumber
+          );
+          return currentToken || null;
+        }
+      } catch (altError) {
+        console.error("Alternative method also failed:", altError);
+      }
+
+      return null;
+    }
+  },
+
+  /**
    * Generate token for a clinic (fetches queue first, then generates token)
    * This is a convenience method that:
    * 1. Gets today's queue for the clinic

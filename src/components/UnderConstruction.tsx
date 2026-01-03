@@ -8,9 +8,9 @@ interface UnderConstructionProps {
   showBackButton?: boolean;
 }
 
-export const UnderConstruction = ({ 
+export const UnderConstruction = ({
   title = "Under Construction",
-  showBackButton = true 
+  showBackButton = true,
 }: UnderConstructionProps) => {
   const router = useRouter();
 
@@ -19,18 +19,20 @@ export const UnderConstruction = ({
       <View style={styles.iconContainer}>
         <Ionicons name="construct" size={80} color="#0165FC" />
       </View>
-      
+
       <Text style={styles.title}>{title}</Text>
-      
+
       <Text style={styles.subtitle}>
         We're currently working on this feature.{"\n"}
         Stay tuned for updates! 🚧
       </Text>
-      
+
       {showBackButton && (
-        <TouchableOpacity 
-          style={styles.button} 
-          onPress={() => router.canGoBack() ? router.back() : router.replace("/")}
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() =>
+            router.canGoBack() ? router.back() : router.replace("/")
+          }
           activeOpacity={0.8}
         >
           <Text style={styles.buttonText}>Go Back</Text>
@@ -62,7 +64,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
-    elevation: 8,
   },
   title: {
     fontSize: 26,
@@ -87,7 +88,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 3,
   },
   buttonText: {
     color: "white",

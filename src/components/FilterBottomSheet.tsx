@@ -251,6 +251,7 @@ export const FilterBottomSheet = React.memo<FilterBottomSheetProps>(
             <TouchableOpacity
               onPress={handleClose}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              activeOpacity={0.8}
             >
               <Ionicons name="close" size={22} color="#64748B" />
             </TouchableOpacity>
@@ -285,6 +286,7 @@ export const FilterBottomSheet = React.memo<FilterBottomSheetProps>(
                       radius === option.value && styles.radiusChipSelected,
                     ]}
                     onPress={() => handleSetRadius(option.value)}
+                    activeOpacity={0.8}
                   >
                     <Text
                       style={[
@@ -302,7 +304,11 @@ export const FilterBottomSheet = React.memo<FilterBottomSheetProps>(
           )}
 
           {/* Apply Button */}
-          <TouchableOpacity style={styles.sheetApplyBtn} onPress={handleApply}>
+          <TouchableOpacity
+            style={styles.sheetApplyBtn}
+            onPress={handleApply}
+            activeOpacity={0.8}
+          >
             <Text style={styles.sheetApplyText}>Apply</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -331,7 +337,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
-    elevation: 20,
   },
   handleArea: {
     paddingVertical: 12,

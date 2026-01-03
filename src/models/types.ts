@@ -83,10 +83,21 @@ export const getClinicsQuerySchema = z.object({
   limit: z.number().default(10),
 });
 
+export const toggleQueueStatusParamsSchema = z.object({
+  queueId: z.string().uuid().min(1),
+});
+
+export const toggleQueueStatusBodySchema = z.object({
+  isActive: z.boolean(),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
 export type GetClinicsQuery = z.infer<typeof getClinicsQuerySchema>;
+export type ToggleQueueStatusInput = z.infer<
+  typeof toggleQueueStatusBodySchema
+>;
 
 // ============================================
 // INTERFACES
@@ -174,6 +185,7 @@ export interface QueueStatus {
   startTime?: string;
   endTime?: string;
   estimatedWaitTime?: number;
+  lastServedTokenNumber?: number;
 }
 
 // Token

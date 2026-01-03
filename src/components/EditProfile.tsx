@@ -52,7 +52,7 @@ export default function EditProfile() {
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backButton}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
           >
             <Ionicons name="arrow-back" size={24} color="#1E293B" />
           </TouchableOpacity>
@@ -71,7 +71,7 @@ export default function EditProfile() {
             <TouchableOpacity
               onPress={pickImage}
               style={styles.avatarContainer}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
               {shouldShowImage ? (
                 <Image
@@ -133,7 +133,7 @@ export default function EditProfile() {
             style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
             onPress={handleSave}
             disabled={isLoading}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
           >
             {isLoading ? (
               <ActivityIndicator color="white" />

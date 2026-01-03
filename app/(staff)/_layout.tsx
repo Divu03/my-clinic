@@ -16,7 +16,7 @@ export default function StaffLayout() {
           }}
         />
         <Stack.Screen
-          name="admin-edit-profile/index"
+          name="staff-edit-profile/index"
           options={{
             headerShown: false,
             presentation: "card",

@@ -62,7 +62,7 @@ const ClinicCard = ({
     <TouchableOpacity
       style={styles.clinicCard}
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
     >
       {/* Avatar */}
       <View style={[styles.clinicAvatar, { backgroundColor: `${color}15` }]}>
@@ -121,6 +121,7 @@ const TypeChip = ({
   <TouchableOpacity
     style={[styles.filterChip, isActive && styles.filterChipActive]}
     onPress={onPress}
+    activeOpacity={0.8}
   >
     <Text style={[styles.filterText, isActive && styles.filterTextActive]}>
       {label}
@@ -189,6 +190,7 @@ export default function AdminHomeScreen() {
       <TouchableOpacity
         style={styles.emptyButton}
         onPress={() => setShowFilters(true)}
+        activeOpacity={0.8}
       >
         <Text style={styles.emptyButtonText}>Open Filters</Text>
       </TouchableOpacity>
@@ -208,6 +210,7 @@ export default function AdminHomeScreen() {
           <TouchableOpacity
             style={styles.profileBtn}
             onPress={() => router.push("/(admin)/(tabs)/profile")}
+            activeOpacity={0.8}
           >
             <Ionicons name="person-circle" size={40} color="#0165FC" />
           </TouchableOpacity>
@@ -225,7 +228,10 @@ export default function AdminHomeScreen() {
               onChangeText={setSearchQuery}
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <TouchableOpacity
+                onPress={() => setSearchQuery("")}
+                activeOpacity={0.8}
+              >
                 <Ionicons name="close-circle" size={18} color="#CBD5E1" />
               </TouchableOpacity>
             )}
@@ -233,6 +239,7 @@ export default function AdminHomeScreen() {
           <TouchableOpacity
             style={styles.filterBtn}
             onPress={() => setShowFilters(true)}
+            activeOpacity={0.8}
           >
             <Ionicons name="options-outline" size={20} color="#0165FC" />
           </TouchableOpacity>

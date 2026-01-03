@@ -194,7 +194,11 @@ export default function AdminClinicDetailsScreen() {
       <View style={[styles.errorContainer, { paddingTop: insets.top }]}>
         <Ionicons name="alert-circle-outline" size={48} color="#CBD5E1" />
         <Text style={styles.errorTitle}>Clinic Not Found</Text>
-        <TouchableOpacity style={styles.errorBtn} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.errorBtn}
+          onPress={() => router.back()}
+          activeOpacity={0.8}
+        >
           <Text style={styles.errorBtnText}>Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -222,6 +226,7 @@ export default function AdminClinicDetailsScreen() {
         <TouchableOpacity
           style={[styles.backButton, { top: insets.top + 10 }]}
           onPress={() => router.back()}
+          activeOpacity={0.8}
         >
           <Ionicons name="arrow-back" size={22} color="#1E293B" />
         </TouchableOpacity>
@@ -258,10 +263,7 @@ export default function AdminClinicDetailsScreen() {
             {clinic.openingHours && (
               <View style={styles.infoCard}>
                 <View
-                  style={[
-                    styles.infoCardIcon,
-                    { backgroundColor: "#EFF6FF" },
-                  ]}
+                  style={[styles.infoCardIcon, { backgroundColor: "#EFF6FF" }]}
                 >
                   <Ionicons name="time-outline" size={20} color="#0165FC" />
                 </View>
@@ -277,10 +279,7 @@ export default function AdminClinicDetailsScreen() {
             {distanceKm !== null && (
               <View style={styles.infoCard}>
                 <View
-                  style={[
-                    styles.infoCardIcon,
-                    { backgroundColor: "#F0FDF4" },
-                  ]}
+                  style={[styles.infoCardIcon, { backgroundColor: "#F0FDF4" }]}
                 >
                   <Ionicons name="location-outline" size={20} color="#10B981" />
                 </View>
@@ -307,6 +306,7 @@ export default function AdminClinicDetailsScreen() {
               <TouchableOpacity
                 style={styles.directionsBtn}
                 onPress={handleDirections}
+                activeOpacity={0.8}
               >
                 <Ionicons name="navigate-outline" size={18} color="#0165FC" />
                 <Text style={styles.directionsBtnText}>Get Directions</Text>
@@ -323,6 +323,7 @@ export default function AdminClinicDetailsScreen() {
                   <TouchableOpacity
                     style={styles.contactBtn}
                     onPress={handleCall}
+                    activeOpacity={0.8}
                   >
                     <Ionicons name="call" size={20} color="#0165FC" />
                     <Text style={styles.contactBtnText}>Call</Text>
@@ -332,6 +333,7 @@ export default function AdminClinicDetailsScreen() {
                   <TouchableOpacity
                     style={styles.contactBtn}
                     onPress={handleEmail}
+                    activeOpacity={0.8}
                   >
                     <Ionicons name="mail" size={20} color="#0165FC" />
                     <Text style={styles.contactBtnText}>Email</Text>
@@ -341,6 +343,7 @@ export default function AdminClinicDetailsScreen() {
                   <TouchableOpacity
                     style={styles.contactBtn}
                     onPress={handleWebsite}
+                    activeOpacity={0.8}
                   >
                     <Ionicons name="globe" size={20} color="#0165FC" />
                     <Text style={styles.contactBtnText}>Website</Text>
@@ -488,7 +491,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    elevation: 4,
   },
   content: {
     padding: 20,
@@ -647,7 +649,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
-    elevation: 10,
   },
   editBtn: {
     flexDirection: "row",

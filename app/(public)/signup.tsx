@@ -58,6 +58,7 @@ export default function SignupScreen() {
             },
           ]}
           onPress={() => router.back()}
+          activeOpacity={0.8}
         >
           <Ionicons name="arrow-back" size={22} color="#1E293B" />
         </TouchableOpacity>
@@ -169,6 +170,7 @@ export default function SignupScreen() {
             style={[styles.button, isLoading && styles.buttonDisabled]}
             onPress={onSubmit}
             disabled={isLoading}
+            activeOpacity={0.8}
           >
             {isLoading ? (
               <ActivityIndicator color="white" />
@@ -180,7 +182,10 @@ export default function SignupScreen() {
           {/* Login Link */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => router.back()}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              activeOpacity={0.8}
+            >
               <Text style={styles.footerLink}>Sign In</Text>
             </TouchableOpacity>
           </View>

@@ -66,7 +66,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
-    elevation: 8,
   },
   containerActive: {
     backgroundColor: "#10B981",

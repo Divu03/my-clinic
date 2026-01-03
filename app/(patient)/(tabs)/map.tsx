@@ -131,13 +131,18 @@ const ClinicCard = ({
 
         {/* Action Buttons */}
         <View style={styles.cardButtonRow}>
-          <TouchableOpacity style={styles.cardButton} onPress={onViewDetails}>
+          <TouchableOpacity
+            style={styles.cardButton}
+            onPress={onViewDetails}
+            activeOpacity={0.8}
+          >
             <Text style={styles.cardButtonText}>View Clinic</Text>
             <Ionicons name="chevron-forward" size={16} color="white" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.directionsIconBtn}
             onPress={handleDirections}
+            activeOpacity={0.8}
           >
             <Ionicons name="navigate-outline" size={18} color="#0165FC" />
           </TouchableOpacity>
@@ -286,6 +291,7 @@ export default function MapScreen() {
         <TouchableOpacity
           style={styles.headerBtn}
           onPress={() => router.back()}
+          activeOpacity={0.8}
         >
           <Ionicons name="arrow-back" size={22} color="#1E293B" />
         </TouchableOpacity>
@@ -295,6 +301,7 @@ export default function MapScreen() {
         <TouchableOpacity
           style={[styles.headerBtn, showFilters && styles.headerBtnActive]}
           onPress={() => setShowFilters(true)}
+          activeOpacity={0.8}
         >
           <Ionicons
             name="options-outline"
@@ -332,6 +339,7 @@ export default function MapScreen() {
             bottom: clinics.length > 0 ? 200 : 250,
           },
         ]}
+        activeOpacity={0.8}
         onPress={focusOnUser}
       >
         <Ionicons name="locate" size={22} color="#0165FC" />
@@ -369,6 +377,7 @@ export default function MapScreen() {
           <TouchableOpacity
             style={styles.emptyButton}
             onPress={() => setShowFilters(true)}
+            activeOpacity={0.8}
           >
             <Text style={styles.emptyButtonText}>Open Filters</Text>
           </TouchableOpacity>
@@ -407,7 +416,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 4,
     gap: 10,
   },
   loadingCardText: {
@@ -433,7 +441,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 4,
   },
   headerBtn: {
     width: 36,
@@ -479,7 +486,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
-    elevation: 4,
   },
   carouselContainer: {
     position: "absolute",
@@ -500,7 +506,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
-    elevation: 5,
   },
   cardSelected: {
     borderWidth: 2,
@@ -595,7 +600,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
-    elevation: 5,
   },
   emptyTitle: {
     fontSize: 16,
@@ -637,7 +641,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 4,
   },
   markerSelected: {
     width: 40,

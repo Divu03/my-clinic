@@ -30,7 +30,7 @@ const MenuItem = ({
   <TouchableOpacity
     style={styles.menuItem}
     onPress={onPress}
-    activeOpacity={0.7}
+    activeOpacity={0.8}
   >
     <View style={[styles.menuIcon, danger && { backgroundColor: "#FEE2E2" }]}>
       <Ionicons
@@ -101,24 +101,6 @@ export default function ProfileScreen() {
           <Text style={styles.userEmail}>{user?.email}</Text>
           <View style={styles.roleBadge}>
             <Text style={styles.roleText}>{user?.role || "Patient"}</Text>
-          </View>
-        </View>
-
-        {/* Stats */}
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>12</Text>
-            <Text style={styles.statLabel}>Visits</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>4</Text>
-            <Text style={styles.statLabel}>Saved</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>2</Text>
-            <Text style={styles.statLabel}>Reviews</Text>
           </View>
         </View>
 

@@ -15,7 +15,6 @@ export default function AdminLayout(){
           tabBarStyle: {
             backgroundColor: "#FFFFFF",
             borderTopWidth: 0,
-            elevation: 10,
             shadowColor: "#000",
             shadowOffset: { width: 0, height: -4 },
             shadowOpacity: 0.05,
