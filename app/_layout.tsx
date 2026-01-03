@@ -12,6 +12,12 @@ import { FilterProvider } from "../src/context/FilterContext";
 
 SplashScreen.preventAutoHideAsync();
 
+/**
+ * Function: RootLayoutNav
+ * Purpose: Manages the main navigation stack, enforces authentication protection, and provides global contexts.
+ * i/p: None (Uses hooks: useAuth, useSegments, useRouter)
+ * o/p: JSX.Element (The Navigation Stack wrapped in Providers or a Loading Screen)
+ */
 function RootLayoutNav() {
   const { user, isLoading } = useAuth();
   const segments = useSegments();
@@ -20,6 +26,11 @@ function RootLayoutNav() {
   const hasInitializedRef = React.useRef(false);
   const initialAuthCheckDoneRef = React.useRef(false);
 
+  /**
+   * Effect: Initial Authentication Check
+   * Purpose: Handles the first-time redirection logic when the app mounts.
+   *          Ensures the user is routed to the correct group ((public) vs (private)) based on auth state.
+   */
   useEffect(() => {
     if (hasInitializedRef.current) return;
     if (isLoading) {
@@ -30,6 +41,7 @@ function RootLayoutNav() {
       initialAuthCheckDoneRef.current = true;
     }
 
+    // Logic: If user exists, redirect away from public routes. If not, redirect to login.
     if (user) {
       const inAuthGroup = segments[0] === "(public)";
       if (inAuthGroup) {
@@ -44,6 +56,7 @@ function RootLayoutNav() {
 
     hasInitializedRef.current = true;
 
+    // Small delay to ensure navigation container is fully mounted before rendering child screens
     const timer = setTimeout(() => {
       setIsNavigationReady(true);
     }, 100);
@@ -51,18 +64,30 @@ function RootLayoutNav() {
     return () => clearTimeout(timer);
   }, [isLoading, user, segments, router]);
 
+  /**
+   * Effect: Reactive Authentication Check
+   * Purpose: Monitors changes in user state or route segments after initialization.
+   *          Acts as a guard to prevent unauthorized access if the user logs out or tries to navigate manually.
+   */
   useEffect(() => {
     if (!hasInitializedRef.current || !isNavigationReady) return;
 
     const inAuthGroup = segments[0] === "(public)";
 
     if (user && inAuthGroup) {
-      router.replace("/(private)");
+      if(user.role == "STAFF"){
+        router.replace("/(staff)");
+      } else if(user.role == "ADMIN") {
+        router.replace("/(admin)");
+      } else {
+        router.replace("/(private)");
+      }
     } else if (!user && !inAuthGroup) {
       router.replace("/(public)/login");
     }
   }, [user, segments, router, isNavigationReady]);
 
+  // Show splash screen while auth is loading or navigation isn't ready
   const isInitialLoading = isLoading && !initialAuthCheckDoneRef.current;
   if (isInitialLoading || !isNavigationReady) {
     return <CustomSplashScreen />;
@@ -81,6 +106,8 @@ function RootLayoutNav() {
           >
             <Stack.Screen name="(public)" />
             <Stack.Screen name="(private)" />
+            <Stack.Screen name="(staff)" />
+            <Stack.Screen name="(admin)" />
             <Stack.Screen
               name="clinic-details/[id]"
               options={{
@@ -95,9 +122,20 @@ function RootLayoutNav() {
   );
 }
 
+/**
+ * Function: RootLayout
+ * Purpose: The main entry point component for the Expo Router.
+ *          Handles global app initialization (resources, splash screen) and wraps the app in the AuthProvider.
+ * i/p: None
+ * o/p: JSX.Element (GestureHandlerRootView wrapping the application)
+ */
 export default function RootLayout() {
   const [appIsReady, setAppIsReady] = useState(false);
 
+  /**
+   * Effect: App Preparation
+   * Purpose: Simulates resource loading or performs actual async setup before hiding the splash screen.
+   */
   useEffect(() => {
     async function prepare() {
       try {

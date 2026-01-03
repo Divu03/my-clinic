@@ -55,7 +55,7 @@ export const QueueService = {
   getTodayQueueForClinic: async (clinicId: string): Promise<Queue | null> => {
     try {
       const response = await api.get<ApiResponse<Queue>>(
-        `/queues/clinic/${clinicId}/today`
+        `/queues/${clinicId}`
       );
 
       if (response.data.success) {
