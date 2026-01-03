@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { toast } from "sonner-native";
 import { useLoginViewModel } from "../../src/viewmodels/AuthViewModel";
 
 export default function LoginScreen() {
@@ -25,6 +26,7 @@ export default function LoginScreen() {
   const onSubmit = async () => {
     const result = await handleLogin();
     if (!result.success && result.message) {
+      toast.error(result.message);
       return;
     }
   };

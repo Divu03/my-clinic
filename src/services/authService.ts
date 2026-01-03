@@ -146,6 +146,40 @@ export const AuthService = {
   },
 
   /**
+   * Update user password
+   */
+  updatePassword: async (data: {
+    oldPassword: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  }): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const response = await api.put<{
+        success: boolean;
+        message?: string;
+      }>("/auth/update-password", {
+        oldPassword: data.oldPassword,
+        newPassword: data.newPassword,
+        confirmNewPassword: data.confirmNewPassword,
+      });
+
+      if (response.data.success) {
+        return { success: true, message: response.data.message };
+      }
+
+      return {
+        success: false,
+        message: response.data.message || "Password update failed",
+      };
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiError>;
+      const message =
+        axiosError.response?.data?.message || "Failed to update password";
+      return { success: false, message };
+    }
+  },
+
+  /**
    * Refresh the access token
    */
   refreshToken: async (): Promise<boolean> => {

@@ -57,6 +57,21 @@ export const registerSchema = z
     path: ["confirmPassword"],
   });
 
+export const updatePasswordSchema = z
+  .object({
+    oldPassword: z
+      .string()
+      .min(6, "Old password must be at least 6 characters"),
+    newPassword: z
+      .string()
+      .min(6, "New password must be at least 6 characters"),
+    confirmNewPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "New passwords do not match",
+    path: ["confirmNewPassword"],
+  });
+
 // Clinic Query Schema
 export const getClinicsQuerySchema = z.object({
   latitude: z.number().optional(),
@@ -70,6 +85,7 @@ export const getClinicsQuerySchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
 export type GetClinicsQuery = z.infer<typeof getClinicsQuerySchema>;
 
 // ============================================
