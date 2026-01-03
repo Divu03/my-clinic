@@ -52,7 +52,7 @@ function RootLayoutNav() {
         } else if (user.role === "ADMIN") {
           router.replace("/(admin)");
         } else if (user.role === "PATIENT") {
-          router.replace("/(patient)");
+          router.replace("/(patient)/(tabs)");
         }
       } else {
         const isOnCorrectRoute =
@@ -61,13 +61,12 @@ function RootLayoutNav() {
           (user.role === "PATIENT" && currentRouteGroup === "(patient)");
 
         if (!isOnCorrectRoute) {
-          // Redirect to correct route based on role
           if (user.role === "STAFF") {
             router.replace("/(staff)");
           } else if (user.role === "ADMIN") {
             router.replace("/(admin)");
           } else if (user.role === "PATIENT") {
-            router.replace("/(patient)");
+            router.replace("/(patient)/(tabs)");
           }
         }
       }
@@ -107,7 +106,7 @@ function RootLayoutNav() {
         } else if (user.role === "ADMIN") {
           router.replace("/(admin)");
         } else if (user.role === "PATIENT") {
-          router.replace("/(patient)");
+          router.replace("/(patient)/(tabs)");
         }
       } else {
         // User is authenticated but check if they're on the correct route group
@@ -123,7 +122,7 @@ function RootLayoutNav() {
           } else if (user.role === "ADMIN") {
             router.replace("/(admin)");
           } else if (user.role === "PATIENT") {
-            router.replace("/(patient)");
+            router.replace("/(patient)/(tabs)");
           }
         }
       }
@@ -154,12 +153,6 @@ function RootLayoutNav() {
             <Stack.Screen name="(patient)" />
             <Stack.Screen name="(staff)" />
             <Stack.Screen name="(admin)" />
-            <Stack.Screen
-              name="clinic-details/[id]"
-              options={{
-                presentation: "card",
-              }}
-            />
           </Stack>
           <Toaster position="top-center" richColors />
         </View>

@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
-import { useQueue } from "../../src/context/QueueContext";
+import { useQueue } from "../../../src/context/QueueContext";
 
 export default function TokensScreen() {
   const router = useRouter();
@@ -75,7 +75,7 @@ export default function TokensScreen() {
         </Text>
         <TouchableOpacity
           style={styles.findBtn}
-          onPress={() => router.push("/(patient)/map")}
+          onPress={() => router.push("/(patient)/(tabs)/map")}
           activeOpacity={0.8}
         >
           <Ionicons

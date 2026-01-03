@@ -15,9 +15,9 @@ import {
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FilterBottomSheet } from "../../src/components/FilterBottomSheet";
-import { Clinic } from "../../src/models/types";
-import { useMapViewModel } from "../../src/viewmodels/useMapViewModel";
+import { FilterBottomSheet } from "../../../src/components/FilterBottomSheet";
+import { Clinic } from "../../../src/models/types";
+import { useMapViewModel } from "../../../src/viewmodels/useMapViewModel";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH * 0.9;
@@ -206,7 +206,7 @@ export default function MapScreen() {
 
   const handleViewDetails = useCallback(
     (clinic: Clinic) => {
-      // Navigate to clinic details as modal (no tabs) with distance
+      // Navigate to clinic details screen with distance
       router.push({
         pathname: `/clinic-details/${clinic.id}`,
         params: { distance: clinic.distance_km?.toString() },

@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuth } from "../../src/context/AuthContext";
+import { useAuth } from "../../../src/context/AuthContext";
 
 // ============================================
 // MENU ITEM COMPONENT
