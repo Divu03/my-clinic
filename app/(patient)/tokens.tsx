@@ -75,7 +75,7 @@ export default function TokensScreen() {
         </Text>
         <TouchableOpacity
           style={styles.findBtn}
-          onPress={() => router.push("/(private)/map")}
+          onPress={() => router.push("/(patient)/map")}
           activeOpacity={0.8}
         >
           <Ionicons

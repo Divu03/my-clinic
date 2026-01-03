@@ -24,7 +24,7 @@ export const ActiveTokenBar = () => {
         isYourTurn && styles.containerActive,
         { bottom: Math.max(insets.bottom, 8) + 75, right: 16 },
       ]}
-      onPress={() => router.push("/(private)/tokens")}
+      onPress={() => router.push("/(patient)/tokens")}
       activeOpacity={0.8}
     >
       <View style={styles.iconContainer}>

@@ -2,17 +2,9 @@ import { useQueue } from "@/src/context/QueueContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
-import {
-  Button,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from "react-native";
+import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuth, } from "../../src/context/AuthContext";
-
-
+import { useAuth } from "../../src/context/AuthContext";
 
 // ============================================
 // MAIN COMPONENT
@@ -22,9 +14,6 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { callNextTocken } = useQueue();
-
-
-
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -45,17 +34,17 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity
             style={styles.profileBtn}
-            onPress={() => router.push("/(private)/profile")}
+            onPress={() => router.push("/(staff)/profile")}
           >
             <Ionicons name="person-circle" size={40} color="#0165FC" />
           </TouchableOpacity>
         </View>
       </View>
       {
-      //Activate Queue
-      //Request Form
+        //Activate Queue
+        //Request Form
       }
-      <Button title="Start Queue" onPress={callNextTocken}/>
+      <Button title="Start Queue" onPress={callNextTocken} />
     </View>
   );
 }

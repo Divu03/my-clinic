@@ -212,7 +212,7 @@ export default function ClinicDetailsScreen() {
           { text: "Cancel", style: "cancel" },
           {
             text: "View Queue",
-            onPress: () => router.push("/(private)/tokens"),
+            onPress: () => router.push("/(patient)/tokens"),
           },
         ]
       );
@@ -227,7 +227,7 @@ export default function ClinicDetailsScreen() {
       Alert.alert("Success!", "You've joined the queue.", [
         {
           text: "View Token",
-          onPress: () => router.push("/(private)/tokens"),
+          onPress: () => router.push("/(patient)/tokens"),
         },
       ]);
     } catch (error: any) {

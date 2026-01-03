@@ -29,7 +29,7 @@ function RootLayoutNav() {
   /**
    * Effect: Initial Authentication Check
    * Purpose: Handles the first-time redirection logic when the app mounts.
-   *          Ensures the user is routed to the correct group ((public) vs (private)) based on auth state.
+   *          Ensures the user is routed to the correct group ((public) vs (patient)) based on auth state.
    */
   useEffect(() => {
     if (hasInitializedRef.current) return;
@@ -43,9 +43,33 @@ function RootLayoutNav() {
 
     // Logic: If user exists, redirect away from public routes. If not, redirect to login.
     if (user) {
-      const inAuthGroup = segments[0] === "(public)";
+      const currentRouteGroup = segments[0];
+      const inAuthGroup = currentRouteGroup === "(public)";
+
       if (inAuthGroup) {
-        router.replace("/(private)");
+        if (user.role === "STAFF") {
+          router.replace("/(staff)");
+        } else if (user.role === "ADMIN") {
+          router.replace("/(admin)");
+        } else if (user.role === "PATIENT") {
+          router.replace("/(patient)");
+        }
+      } else {
+        const isOnCorrectRoute =
+          (user.role === "STAFF" && currentRouteGroup === "(staff)") ||
+          (user.role === "ADMIN" && currentRouteGroup === "(admin)") ||
+          (user.role === "PATIENT" && currentRouteGroup === "(patient)");
+
+        if (!isOnCorrectRoute) {
+          // Redirect to correct route based on role
+          if (user.role === "STAFF") {
+            router.replace("/(staff)");
+          } else if (user.role === "ADMIN") {
+            router.replace("/(admin)");
+          } else if (user.role === "PATIENT") {
+            router.replace("/(patient)");
+          }
+        }
       }
     } else {
       const inAuthGroup = segments[0] === "(public)";
@@ -72,17 +96,39 @@ function RootLayoutNav() {
   useEffect(() => {
     if (!hasInitializedRef.current || !isNavigationReady) return;
 
-    const inAuthGroup = segments[0] === "(public)";
+    const currentRouteGroup = segments[0];
+    const inAuthGroup = currentRouteGroup === "(public)";
 
-    if (user && inAuthGroup) {
-      if(user.role == "STAFF"){
-        router.replace("/(staff)");
-      } else if(user.role == "ADMIN") {
-        router.replace("/(admin)");
+    if (user) {
+      // If user is on public routes, redirect to their role-based route
+      if (inAuthGroup) {
+        if (user.role === "STAFF") {
+          router.replace("/(staff)");
+        } else if (user.role === "ADMIN") {
+          router.replace("/(admin)");
+        } else if (user.role === "PATIENT") {
+          router.replace("/(patient)");
+        }
       } else {
-        router.replace("/(private)");
+        // User is authenticated but check if they're on the correct route group
+        const isOnCorrectRoute =
+          (user.role === "STAFF" && currentRouteGroup === "(staff)") ||
+          (user.role === "ADMIN" && currentRouteGroup === "(admin)") ||
+          (user.role === "PATIENT" && currentRouteGroup === "(patient)");
+
+        if (!isOnCorrectRoute) {
+          // Redirect to correct route based on role
+          if (user.role === "STAFF") {
+            router.replace("/(staff)");
+          } else if (user.role === "ADMIN") {
+            router.replace("/(admin)");
+          } else if (user.role === "PATIENT") {
+            router.replace("/(patient)");
+          }
+        }
       }
     } else if (!user && !inAuthGroup) {
+      // User is not authenticated but on protected routes
       router.replace("/(public)/login");
     }
   }, [user, segments, router, isNavigationReady]);
@@ -105,7 +151,7 @@ function RootLayoutNav() {
             }}
           >
             <Stack.Screen name="(public)" />
-            <Stack.Screen name="(private)" />
+            <Stack.Screen name="(patient)" />
             <Stack.Screen name="(staff)" />
             <Stack.Screen name="(admin)" />
             <Stack.Screen

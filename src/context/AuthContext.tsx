@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (result.success && result.user) {
           setUser(result.user);
-          router.replace("/(private)");
+          router.replace("/(patient)");
           return { success: true };
         }
 
