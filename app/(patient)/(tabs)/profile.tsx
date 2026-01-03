@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -50,6 +52,7 @@ const MenuItem = ({
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const insets = useSafeAreaInsets();
+  const [imageError, setImageError] = useState(false);
 
   const handleLogout = () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -65,15 +68,33 @@ export default function ProfileScreen() {
     }`.toUpperCase();
   };
 
+  const shouldShowImage = user?.profilePicture && !imageError;
+
+  useEffect(() => {
+    if (user?.profilePicture) {
+      setImageError(false);
+    }
+  }, [user?.profilePicture]);
+
   return (
     <View style={styles.wrapper}>
       <View style={[styles.safeAreaTop, { height: insets.top }]} />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         <View style={styles.header}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{getInitials()}</Text>
-          </View>
+          {shouldShowImage ? (
+            <Image
+              source={{ uri: user.profilePicture }}
+              style={styles.avatar}
+              contentFit="cover"
+              transition={200}
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarText}>{getInitials()}</Text>
+            </View>
+          )}
           <Text style={styles.userName}>
             {user?.firstName} {user?.lastName}
           </Text>
@@ -105,7 +126,11 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
           <View style={styles.menuCard}>
-            <MenuItem icon="person-outline" label="Edit Profile" />
+            <MenuItem
+              icon="person-outline"
+              label="Edit Profile"
+              onPress={() => router.navigate("/patient-edit-profile")}
+            />
             <MenuItem icon="notifications-outline" label="Notifications" />
             <MenuItem icon="shield-outline" label="Privacy" />
           </View>
@@ -172,6 +197,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#F1F5F9",
+    marginBottom: 12,
+    overflow: "hidden",
+  },
+  avatarPlaceholder: {
     width: 72,
     height: 72,
     borderRadius: 36,

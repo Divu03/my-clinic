@@ -1,75 +1,28 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Tabs, usePathname } from "expo-router";
+import { Stack } from "expo-router";
 import { View } from "react-native";
 
-export default function StaffLayout(){
-    const pathname = usePathname();
-    
-    return (
+export default function StaffLayout() {
+  return (
     <View style={{ flex: 1, backgroundColor: "#FAFBFC" }}>
-      <Tabs
+      <Stack
         screenOptions={{
-          tabBarActiveTintColor: "#0165FC",
-          tabBarInactiveTintColor: "#94A3B8",
           headerShown: false,
-          tabBarStyle: {
-            backgroundColor: "#FFFFFF",
-            borderTopWidth: 0,
-            elevation: 10,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.05,
-            shadowRadius: 12,
-            height: 85,
-            paddingTop: 8,
-            paddingBottom: 25,
-          },
-          tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: "600",
-          },
         }}
       >
-        <Tabs.Screen
-          name="index"
+        <Stack.Screen
+          name="(tabs)"
           options={{
-            title: "Home",
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? "home" : "home-outline"}
-                size={24}
-                color={color}
-              />
-            ),
+            headerShown: false,
           }}
         />
-        <Tabs.Screen
-          name="tokens"
+        <Stack.Screen
+          name="admin-edit-profile/index"
           options={{
-            title: "Queue",
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? "ticket" : "ticket-outline"}
-                size={24}
-                color={color}
-              />
-            ),
+            headerShown: false,
+            presentation: "card",
           }}
         />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: "Profile",
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? "person" : "person-outline"}
-                size={24}
-                color={color}
-              />
-            ),
-          }}
-        />
-      </Tabs>
+      </Stack>
     </View>
   );
 }

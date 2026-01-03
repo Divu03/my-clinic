@@ -48,9 +48,9 @@ function RootLayoutNav() {
 
       if (inAuthGroup) {
         if (user.role === "STAFF") {
-          router.replace("/(staff)");
+          router.replace("/(staff)/(tabs)");
         } else if (user.role === "ADMIN") {
-          router.replace("/(admin)");
+          router.replace("/(admin)/(tabs)");
         } else if (user.role === "PATIENT") {
           router.replace("/(patient)/(tabs)");
         }
@@ -62,9 +62,9 @@ function RootLayoutNav() {
 
         if (!isOnCorrectRoute) {
           if (user.role === "STAFF") {
-            router.replace("/(staff)");
+            router.replace("/(staff)/(tabs)");
           } else if (user.role === "ADMIN") {
-            router.replace("/(admin)");
+            router.replace("/(admin)/(tabs)");
           } else if (user.role === "PATIENT") {
             router.replace("/(patient)/(tabs)");
           }
@@ -102,9 +102,9 @@ function RootLayoutNav() {
       // If user is on public routes, redirect to their role-based route
       if (inAuthGroup) {
         if (user.role === "STAFF") {
-          router.replace("/(staff)");
+          router.replace("/(staff)/(tabs)");
         } else if (user.role === "ADMIN") {
-          router.replace("/(admin)");
+          router.replace("/(admin)/(tabs)");
         } else if (user.role === "PATIENT") {
           router.replace("/(patient)/(tabs)");
         }
@@ -118,9 +118,9 @@ function RootLayoutNav() {
         if (!isOnCorrectRoute) {
           // Redirect to correct route based on role
           if (user.role === "STAFF") {
-            router.replace("/(staff)");
+            router.replace("/(staff)/(tabs)");
           } else if (user.role === "ADMIN") {
-            router.replace("/(admin)");
+            router.replace("/(admin)/(tabs)");
           } else if (user.role === "PATIENT") {
             router.replace("/(patient)/(tabs)");
           }

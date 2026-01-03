@@ -96,6 +96,49 @@ export const AuthService = {
   },
 
   /**
+   * Update user profile
+   */
+  updateProfile: async (data: {
+    firstName: string;
+    lastName: string;
+    profilePicture?: string; // base64 string
+  }): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const formData = new FormData();
+      formData.append("firstName", data.firstName);
+      formData.append("lastName", data.lastName);
+
+      // Only append image if provided (as base64 string)
+      if (data.profilePicture) {
+        // Remove data:image/... prefix if present, keep just base64
+        const base64Data = data.profilePicture.includes(",")
+          ? data.profilePicture.split(",")[1]
+          : data.profilePicture;
+        formData.append("profilePicture", base64Data);
+      }
+
+      const response = await api.put<{
+        success: boolean;
+        message?: string;
+      }>("/auth/me", formData);
+
+      if (response.data.success) {
+        return { success: true, message: response.data.message };
+      }
+
+      return {
+        success: false,
+        message: response.data.message || "Update failed",
+      };
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiError>;
+      const message =
+        axiosError.response?.data?.message || "Failed to update profile";
+      return { success: false, message };
+    }
+  },
+
+  /**
    * Check if user is authenticated
    */
   isAuthenticated: async (): Promise<boolean> => {

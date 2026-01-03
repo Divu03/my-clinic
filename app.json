@@ -40,7 +40,13 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow My Clinic to use your location to find nearby doctors."
+          "locationAlwaysAndWhenInUsePermission": "Allow Qure Clinic to use your location to find nearby doctors."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Qure Clinic to access your photos to let you change your profile picture."
         }
       ]
     ],

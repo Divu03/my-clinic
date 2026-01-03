@@ -60,7 +60,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (result.success && result.user) {
           setUser(result.user);
-          router.replace("/(patient)");
+          if (result.user.role === "PATIENT") {
+            router.replace("/(patient)/(tabs)");
+          } else if (result.user.role === "STAFF") {
+            router.replace("/(staff)/(tabs)");
+          } else if (result.user.role === "ADMIN") {
+            router.replace("/(admin)/(tabs)");
+          }
           return { success: true };
         }
 

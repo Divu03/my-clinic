@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuth } from "../../src/context/AuthContext";
+import { useAuth } from "../../../src/context/AuthContext";
 
 // ============================================
 // MAIN COMPONENT
@@ -34,7 +34,7 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity
             style={styles.profileBtn}
-            onPress={() => router.push("/(staff)/profile")}
+            onPress={() => router.push("/profile")}
           >
             <Ionicons name="person-circle" size={40} color="#0165FC" />
           </TouchableOpacity>
