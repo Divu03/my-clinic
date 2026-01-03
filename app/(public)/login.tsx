@@ -17,7 +17,7 @@ import { useLoginViewModel } from "../../src/viewmodels/AuthViewModel";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { formData, setFormData, isLoading, errors, handleLogin, updateField } =
+  const { formData, isLoading, errors, handleLogin, updateField } =
     useLoginViewModel();
 
   const [showPassword, setShowPassword] = useState(false);

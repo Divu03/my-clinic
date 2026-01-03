@@ -14,10 +14,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FilterBottomSheet } from "../../src/components/FilterBottomSheet";
-import { useAuth } from "../../src/context/AuthContext";
-import { Clinic, ClinicType, ClinicTypeValue } from "../../src/models/types";
-import { useHomeViewModel } from "../../src/viewmodels/useHomeViewModel";
+import { FilterBottomSheet } from "../../../src/components/FilterBottomSheet";
+import { useAuth } from "../../../src/context/AuthContext";
+import { Clinic, ClinicType, ClinicTypeValue } from "../../../src/models/types";
+import { useHomeViewModel } from "../../../src/viewmodels/useHomeViewModel";
 
 // ============================================
 // CLINIC TYPE FILTERS
@@ -206,7 +206,7 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity
             style={styles.profileBtn}
-            onPress={() => router.push("/(private)/profile")}
+            onPress={() => router.push("/(patient)/(tabs)/profile")}
           >
             <Ionicons name="person-circle" size={40} color="#0165FC" />
           </TouchableOpacity>
@@ -267,7 +267,9 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>
             {showAllClinics ? "All Clinics" : "Nearby Clinics"}
           </Text>
-          <TouchableOpacity onPress={() => router.push("/(private)/map")}>
+          <TouchableOpacity
+            onPress={() => router.push("/(patient)/(tabs)/map")}
+          >
             <Text style={styles.mapLink}>View Map</Text>
           </TouchableOpacity>
         </View>

@@ -1,12 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs, usePathname } from "expo-router";
 import { View } from "react-native";
-import { ActiveTokenBar } from "../../src/components/ActiveTokenBar";
 
-export default function PrivateLayout() {
-  const pathname = usePathname();
-
-  return (
+export default function StaffLayout(){
+    const pathname = usePathname();
+    
+    return (
     <View style={{ flex: 1, backgroundColor: "#FAFBFC" }}>
       <Tabs
         screenOptions={{
@@ -45,19 +44,6 @@ export default function PrivateLayout() {
           }}
         />
         <Tabs.Screen
-          name="map"
-          options={{
-            title: "Explore",
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? "map" : "map-outline"}
-                size={24}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
           name="tokens"
           options={{
             title: "Queue",
@@ -84,8 +70,6 @@ export default function PrivateLayout() {
           }}
         />
       </Tabs>
-
-      {pathname !== "/tokens" && pathname !== "/map" && <ActiveTokenBar />}
     </View>
   );
 }

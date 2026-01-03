@@ -17,9 +17,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
-import { useQueue } from "../../src/context/QueueContext";
-import { Clinic } from "../../src/models/types";
-import { ClinicService } from "../../src/services/clinicService";
+import { useQueue } from "../../../src/context/QueueContext";
+import { Clinic } from "../../../src/models/types";
+import { ClinicService } from "../../../src/services/clinicService";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const IMAGE_WIDTH = SCREEN_WIDTH;
@@ -212,7 +212,7 @@ export default function ClinicDetailsScreen() {
           { text: "Cancel", style: "cancel" },
           {
             text: "View Queue",
-            onPress: () => router.push("/(private)/tokens"),
+            onPress: () => router.push("/tokens"),
           },
         ]
       );
@@ -229,7 +229,7 @@ export default function ClinicDetailsScreen() {
           text: "View Token",
           onPress: () => {
             router.dismissAll();
-            router.navigate("/(private)/tokens");
+            router.navigate("/(patient)/(tabs)/tokens");
           },
         },
       ]);
@@ -519,7 +519,7 @@ export default function ClinicDetailsScreen() {
               style={styles.disabledQueueBtn}
               onPress={() => {
                 router.dismissAll();
-                router.navigate("/(private)/tokens");
+                router.navigate("/tokens");
               }}
             >
               <Ionicons name="ticket" size={20} color="white" />

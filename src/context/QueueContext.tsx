@@ -12,6 +12,7 @@ import { io, Socket } from "socket.io-client";
 import { toast } from "sonner-native";
 import { QueueStatus, Token } from "../models/types";
 import { TokenManager } from "../services/api";
+import QueueService from "../services/queueService";
 import { TokenService } from "../services/token.service";
 import { useAuth } from "./AuthContext";
 
@@ -29,6 +30,7 @@ interface QueueContextType {
   generateTokenForClinic: (clinicId: string) => Promise<Token | null>;
   refreshActiveToken: () => Promise<void>;
   reconnectSocket: () => Promise<void>;
+  callNextTocken: () => Promise<void>;
 }
 
 const QueueContext = createContext<QueueContextType>({} as QueueContextType);
@@ -340,6 +342,37 @@ export const QueueProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+    const callNextTocken = useCallback(async () => {
+      
+      console.log(!user || (user.role !== "ADMIN" && user.role !== "STAFF") || user.clinicId === null);
+      console.log(user?.role);
+      console.log(user?.clinicId);
+      console.log(user);
+    try {
+      if (!user || (user.role !== "ADMIN" && user.role !== "STAFF") || user.clinicId === null) return;
+
+      console.log("Calling next token...");
+      const socket = socketRef.current;
+      if (!socket?.connected) {
+        reconnectSocket();
+        toast.info("Reconnecting");
+        return;
+      }
+
+      const queue = await QueueService.getTodayQueueForClinic(user.clinicId);
+      if(!queue)  {
+        toast.info("No queue found");
+        return
+      };
+      console.log("Found queue:", queue);
+      
+      socket.emit("queue:call_next", queue.id);
+
+    } catch (err) {
+      console.error("Failed to refresh active token:", err);
+    }
+  }, []);
+
   // Debug: Log if function is undefined (should never happen)
   if (typeof generateTokenForClinic !== "function") {
     console.error(
@@ -360,6 +393,7 @@ export const QueueProvider = ({ children }: { children: React.ReactNode }) => {
     generateTokenForClinic,
     refreshActiveToken,
     reconnectSocket,
+    callNextTocken,
   };
 
   return (
