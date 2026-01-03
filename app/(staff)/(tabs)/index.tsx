@@ -1,20 +1,27 @@
-import { useQueue } from "@/src/context/QueueContext";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React from "react";
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../../src/context/AuthContext";
 
-// ============================================
-// MAIN COMPONENT
-// ============================================
-export default function HomeScreen() {
+export default function StaffHomeScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { callNextTocken } = useQueue();
+  const insets = useSafeAreaInsets();
+  const [imageError, setImageError] = useState(false);
 
+  // ============================================
+  // LOGIC
+  // ============================================
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good Morning";
@@ -22,29 +29,95 @@ export default function HomeScreen() {
     return "Good Evening";
   };
 
+  const getInitials = () => {
+    if (!user) return "?";
+    return `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase();
+  };
+
+  // Placeholder Data
+  const placeholderClinic = {
+    name: "Grand River Hospital",
+    address: "835 King St W, Kitchener, ON",
+    type: "GENERAL_PRACTICE",
+  };
+
+  const handleStartQueue = () => {
+    Alert.alert(
+      "Start Daily Queue",
+      "This action will open the queue for patients to join.",
+      [{ text: "Cancel", style: "cancel" }, { text: "Start Now" }]
+    );
+  };
+
+  // ============================================
+  // RENDER
+  // ============================================
   return (
     <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
-      {/* Fixed Header */}
-      <View style={styles.fixedHeader}>
-        {/* Greeting */}
-        <View style={styles.greetingRow}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        
+        {/* 1. GREETING HEADER */}
+        <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>{getGreeting()} 👋</Text>
-            <Text style={styles.userName}>{user?.firstName || "Guest"}</Text>
+            <Text style={styles.userName}>
+              {user?.firstName} {user?.lastName}
+            </Text>
           </View>
-          <TouchableOpacity
-            style={styles.profileBtn}
-            onPress={() => router.push("/profile")}
-          >
-            <Ionicons name="person-circle" size={40} color="#0165FC" />
+
+          <TouchableOpacity style={styles.profileBtn}>
+            {user?.profilePicture && !imageError ? (
+              <Image
+                source={{ uri: user.profilePicture }}
+                style={styles.avatar}
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarText}>{getInitials()}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
-      </View>
-      {
-        //Activate Queue
-        //Request Form
-      }
-      <Button title="Start Queue" onPress={callNextTocken} />
+
+        {/* 2. MY WORKPLACE SECTION */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>My Workplace</Text>
+
+          <View style={styles.clinicCard}>
+            {/* Clinic Info Header */}
+            <View style={styles.clinicHeader}>
+              <View style={styles.clinicIconBox}>
+                <Ionicons name="medkit" size={24} color="#0165FC" />
+              </View>
+              <View style={styles.clinicInfo}>
+                <Text style={styles.clinicName}>{placeholderClinic.name}</Text>
+                <Text style={styles.clinicAddress}>
+                  {placeholderClinic.address}
+                </Text>
+                <View style={styles.clinicBadge}>
+                  <Text style={styles.clinicBadgeText}>
+                    {placeholderClinic.type.replace("_", " ")}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            {/* Action Button */}
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleStartQueue}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="play-circle" size={22} color="white" />
+              <Text style={styles.actionButtonText}>Start Daily Queue</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+      </ScrollView>
     </View>
   );
 }
@@ -52,227 +125,153 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 16,
     backgroundColor: "#FAFBFC",
+    paddingHorizontal: 20,
   },
-  listLoadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 60,
-  },
-  listLoadingText: {
-    marginTop: 12,
-    color: "#64748B",
-    fontSize: 14,
-  },
-  listContent: {
-    paddingBottom: 20,
-    paddingTop: 8,
-  },
-  loadingMoreContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 16,
-    gap: 8,
-  },
-  loadingMoreText: {
-    fontSize: 13,
-    color: "#64748B",
-  },
-  fixedHeader: {
-    paddingHorizontal: 16,
-    backgroundColor: "#FAFBFC",
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
-    paddingBottom: 12,
-  },
-  greetingRow: {
+  
+  // HEADER STYLES
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 30,
+    marginTop: 10,
   },
   greeting: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#64748B",
-    marginBottom: 2,
+    marginBottom: 4,
+    fontWeight: "500",
   },
   userName: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "700",
     color: "#1E293B",
   },
   profileBtn: {
-    padding: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  searchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 10,
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: "white",
   },
-  searchContainer: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "white",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 8,
-    fontSize: 14,
-    color: "#1E293B",
-  },
-  filterBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: "#EFF6FF",
+  avatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#0165FC",
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 2,
+    borderColor: "white",
   },
-  filterStatus: {
-    marginBottom: 12,
-  },
-  filterStatusText: {
-    fontSize: 12,
-    color: "#64748B",
-  },
-  filterList: {
-    paddingBottom: 12,
-    gap: 8,
-  },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: "white",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  filterChipActive: {
-    backgroundColor: "#0165FC",
-    borderColor: "#0165FC",
-  },
-  filterText: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#64748B",
-  },
-  filterTextActive: {
+  avatarText: {
+    fontSize: 18,
+    fontWeight: "600",
     color: "white",
   },
-  sectionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
+
+  // SECTION STYLES
+  section: {
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1E293B",
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#94A3B8",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 12,
+    marginLeft: 4,
   },
-  mapLink: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#0165FC",
-  },
+
+  // CLINIC CARD STYLES
   clinicCard: {
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  clinicHeader: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
-    marginHorizontal: 16,
-    marginBottom: 10,
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
+    marginBottom: 20,
   },
-  clinicAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+  clinicIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: "#F0F9FF",
     justifyContent: "center",
     alignItems: "center",
-  },
-  clinicLogo: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E0F2FE",
   },
   clinicInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 16,
   },
   clinicName: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 17,
+    fontWeight: "700",
     color: "#1E293B",
-    marginBottom: 4,
   },
-  typeBadge: {
+  clinicAddress: {
+    fontSize: 13,
+    color: "#64748B",
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  clinicBadge: {
     alignSelf: "flex-start",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginBottom: 4,
+    backgroundColor: "#F1F5F9",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  typeBadgeText: {
-    fontSize: 10,
+  clinicBadgeText: {
+    fontSize: 11,
     fontWeight: "600",
+    color: "#475569",
     textTransform: "uppercase",
   },
-  clinicMeta: {
-    flexDirection: "row",
-    alignItems: "center",
+  divider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginBottom: 20,
   },
-  metaText: {
-    fontSize: 11,
-    color: "#94A3B8",
-    marginLeft: 4,
-  },
-  distanceContainer: {
-    alignItems: "flex-end",
-  },
-  distanceText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#0165FC",
-    marginBottom: 4,
-  },
-  emptyContainer: {
-    alignItems: "center",
-    paddingVertical: 40,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1E293B",
-    marginTop: 12,
-  },
-  emptySubtitle: {
-    fontSize: 13,
-    color: "#94A3B8",
-    marginTop: 4,
-  },
-  emptyButton: {
-    marginTop: 16,
+  
+  // BUTTON STYLES
+  actionButton: {
     backgroundColor: "#0165FC",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 16,
+    borderRadius: 14,
+    gap: 10,
+    shadowColor: "#0165FC",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  emptyButtonText: {
+  actionButtonText: {
     color: "white",
-    fontWeight: "600",
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

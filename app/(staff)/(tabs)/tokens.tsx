@@ -1,9 +1,8 @@
+import { useQueue } from "@/src/context/QueueContext";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect } from "react";
+import { useFocusEffect, useRouter } from "expo-router"; // 1. Import useFocusEffect
+import React, { useCallback } from "react"; // 2. Import useCallback
 import {
-  Alert,
-  Animated,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,229 +10,91 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useQueue } from "../../../src/context/QueueContext";
+import { useAuth } from "../../../src/context/AuthContext";
 
-export default function TokensScreen() {
+export default function ManageQueueScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {
-    activeToken,
-    queueStatus,
-    leaveQueue,
-    isConnected,
-    refreshActiveToken,
-  } = useQueue();
+  const { user } = useAuth();
+  
+  // 3. Extract 'refreshActiveToken' (or your refresh function) from context
+  const { callNextTocken, queueStatus, refreshActiveToken } = useQueue();
 
-  // Refresh active token when screen comes into focus
+  // 4. Add this block to fetch data whenever the screen is focused
   useFocusEffect(
     useCallback(() => {
-      if (!activeToken) {
-        refreshActiveToken();
-      }
-    }, [activeToken, refreshActiveToken])
+      refreshActiveToken(); 
+      // If you have a specific function like 'fetchQueueStatus()' for staff, use that instead.
+    }, [])
   );
 
-  // Also refresh when component mounts
-  useEffect(() => {
-    refreshActiveToken();
-  }, [refreshActiveToken]);
+  // 5. Read directly from queueStatus (No need for useState/useEffect)
+  const currentServingNumber = queueStatus?.currentTokenNo || "--";
+  const totalPatientsInQueue = 15; // Still a placeholder as requested
 
-  const handleLeaveQueue = () => {
-    Alert.alert(
-      "Leave Queue",
-      "Are you sure you want to leave? You'll lose your position.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Leave", style: "destructive", onPress: leaveQueue },
-      ]
-    );
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
   };
 
-  // Empty State
-  if (!activeToken) {
-    return (
-      <View style={[styles.emptyContainer, { paddingTop: insets.top + 20 }]}>
-        <View style={styles.emptyIconContainer}>
-          <View style={styles.emptyIcon}>
-            <Ionicons name="ticket-outline" size={64} color="#0165FC" />
-          </View>
-        </View>
-        <Text style={styles.emptyTitle}>No Active Token</Text>
-        <Text style={styles.emptySubtitle}>
-          You're not in any queue right now.{"\n"}Find a clinic to join the
-          queue.
-        </Text>
-        <TouchableOpacity
-          style={styles.findBtn}
-          onPress={() => router.push("/map")}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name="search"
-            size={20}
-            color="white"
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.findBtnText}>Find Clinics</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  const peopleAhead = queueStatus
-    ? Math.max(0, activeToken.tokenNumber - queueStatus.currentTokenNo - 1)
-    : 0;
-
-  const isYourTurn = activeToken.status === "CALLED";
-  const progressPercentage = queueStatus?.currentTokenNo
-    ? Math.min(
-        100,
-        (queueStatus.currentTokenNo / activeToken.tokenNumber) * 100 || 0
-      )
-    : 0;
-
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={[
-        styles.contentContainer,
-        { paddingTop: insets.top + 20 },
-      ]}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Connection Status Badge */}
-      <View style={styles.connectionContainer}>
-        <View
-          style={[
-            styles.connectionBadge,
-            { backgroundColor: isConnected ? "#10B98115" : "#EF444415" },
-          ]}
-        >
-          <View
-            style={[
-              styles.connectionDot,
-              { backgroundColor: isConnected ? "#10B981" : "#EF4444" },
-            ]}
-          />
-          <Text
-            style={[
-              styles.connectionText,
-              { color: isConnected ? "#10B981" : "#EF4444" },
-            ]}
+    <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
+      <View style={styles.fixedHeader}>
+        <View style={styles.greetingRow}>
+          <View>
+            <Text style={styles.greeting}>{getGreeting()} 👋</Text>
+            <Text style={styles.userName}>{user?.firstName || "Dr. Staff"}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.profileBtn}
+            onPress={() => router.push("/profile")}
           >
-            {isConnected ? "Live Updates" : "Connecting..."}
-          </Text>
+            <Ionicons name="person-circle" size={40} color="#0165FC" />
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Main Token Card */}
-      <View style={styles.tokenCard}>
-        {/* Status Badge */}
-        <View
-          style={[
-            styles.statusBadge,
-            {
-              backgroundColor: isYourTurn ? "#10B981" : "#0165FC",
-            },
-          ]}
-        >
-          <Ionicons
-            name={isYourTurn ? "checkmark-circle" : "time"}
-            size={16}
-            color="white"
-          />
-          <Text style={styles.statusText}>
-            {isYourTurn ? "Your Turn!" : "Waiting in Queue"}
-          </Text>
-        </View>
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        <View style={styles.controlCard}>
+          
+          <View style={styles.cardHeader}>
+            <View style={styles.liveIndicator}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveText}>Live Counter</Text>
+            </View>
+          </View>
 
-        {/* Token Number Display */}
-        <View style={styles.tokenNumberContainer}>
-          <Text style={styles.tokenLabel}>Token Number</Text>
-          <View
-            style={[
-              styles.tokenCircle,
-              {
-                backgroundColor: isYourTurn ? "#10B981" : "#0165FC",
-                shadowColor: isYourTurn ? "#10B981" : "#0165FC",
-              },
-            ]}
+          <View style={styles.tokenDisplayContainer}>
+            <Text style={styles.tokenLabel}>Now Serving</Text>
+            <View style={styles.tokenCircle}>
+              {/* 6. Display the variable directly */}
+              <Text style={styles.tokenNumber}>{currentServingNumber}</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.callNextBtn}
+            onPress={callNextTocken}
+            activeOpacity={0.8}
           >
-            <Text style={styles.tokenNumber}>{activeToken.tokenNumber}</Text>
-          </View>
-        </View>
+            <Ionicons name="megaphone-outline" size={24} color="white" style={{ marginRight: 8 }} />
+            <Text style={styles.callNextText}>Call Next Token</Text>
+          </TouchableOpacity>
 
-        {/* Queue Stats */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <View style={styles.statIconContainer}>
-              <Ionicons name="person" size={20} color="#0165FC" />
+          <View style={styles.cardFooter}>
+            <View style={styles.queueStatItem}>
+              <Ionicons name="people" size={18} color="#64748B" />
+              <Text style={styles.queueStatText}>
+                Total Waiting: <Text style={styles.statHighlight}>{totalPatientsInQueue}</Text>
+              </Text>
             </View>
-            <Text style={styles.statValue}>
-              {queueStatus?.currentTokenNo || "-"}
-            </Text>
-            <Text style={styles.statLabel}>Now Serving</Text>
           </View>
 
-          <View style={styles.statDivider} />
-
-          <View style={styles.statItem}>
-            <View style={styles.statIconContainer}>
-              <Ionicons name="people" size={20} color="#F59E0B" />
-            </View>
-            <Text style={styles.statValue}>{peopleAhead}</Text>
-            <Text style={styles.statLabel}>Ahead of You</Text>
-          </View>
         </View>
-
-        {/* Progress Bar */}
-        <View style={styles.progressSection}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressLabel}>Queue Progress</Text>
-            <Text style={styles.progressPercentage}>
-              {Math.round(progressPercentage)}%
-            </Text>
-          </View>
-          <View style={styles.progressTrack}>
-            <Animated.View
-              style={[
-                styles.progressFill,
-                {
-                  width: `${progressPercentage}%`,
-                  backgroundColor: isYourTurn ? "#10B981" : "#0165FC",
-                },
-              ]}
-            />
-          </View>
-        </View>
-      </View>
-
-      {/* Info Card */}
-      <View style={styles.infoCard}>
-        <View style={styles.infoIconContainer}>
-          <Ionicons name="information-circle" size={24} color="#0165FC" />
-        </View>
-        <View style={styles.infoContent}>
-          <Text style={styles.infoTitle}>Stay Nearby</Text>
-          <Text style={styles.infoText}>
-            We'll notify you when it's your turn. Make sure your notifications
-            are enabled.
-          </Text>
-        </View>
-      </View>
-
-      {/* Leave Button */}
-      <TouchableOpacity
-        style={styles.leaveBtn}
-        onPress={handleLeaveQueue}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="exit-outline" size={20} color="#EF4444" />
-        <Text style={styles.leaveBtnText}>Leave Queue</Text>
-      </TouchableOpacity>
-
-      <View style={{ height: 20 }} />
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -242,244 +103,145 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FAFBFC",
   },
-  contentContainer: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  emptyContainer: {
-    flex: 1,
+  fixedHeader: {
+    paddingHorizontal: 20,
     backgroundColor: "#FAFBFC",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 40,
+    paddingBottom: 12,
   },
-  emptyIconContainer: {
-    marginBottom: 24,
-  },
-  emptyIcon: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#F0F7FF",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 3,
-    borderColor: "#0165FC20",
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1E293B",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  emptySubtitle: {
-    fontSize: 16,
-    color: "#64748B",
-    marginBottom: 32,
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  findBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#0165FC",
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
-    shadowColor: "#0165FC",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  findBtnText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  connectionContainer: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  connectionBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
-  },
-  connectionDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  connectionText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  tokenCard: {
-    backgroundColor: "white",
-    borderRadius: 24,
-    padding: 28,
-    alignItems: "center",
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
-    marginBottom: 24,
-  },
-  statusText: {
-    color: "white",
-    fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0.3,
-  },
-  tokenNumberContainer: {
-    alignItems: "center",
-    marginBottom: 32,
-    width: "100%",
-  },
-  tokenLabel: {
-    fontSize: 14,
-    color: "#64748B",
-    marginBottom: 12,
-    fontWeight: "500",
-    letterSpacing: 0.5,
-  },
-  tokenCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  tokenNumber: {
-    fontSize: 56,
-    fontWeight: "800",
-    color: "white",
-    letterSpacing: 2,
-  },
-  statsContainer: {
-    flexDirection: "row",
-    width: "100%",
-    marginBottom: 28,
-    justifyContent: "space-around",
-  },
-  statItem: {
-    flex: 1,
-    alignItems: "center",
-  },
-  statIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F1F5F9",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1E293B",
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#64748B",
-    fontWeight: "500",
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: "#E2E8F0",
-    marginHorizontal: 8,
-  },
-  progressSection: {
-    width: "100%",
-  },
-  progressHeader: {
+  greetingRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
   },
-  progressLabel: {
+  greeting: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#1E293B",
-  },
-  progressPercentage: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#0165FC",
-  },
-  progressTrack: {
-    width: "100%",
-    height: 8,
-    backgroundColor: "#F1F5F9",
-    borderRadius: 4,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 4,
-  },
-  infoCard: {
-    flexDirection: "row",
-    backgroundColor: "#F0F7FF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#0165FC15",
-  },
-  infoIconContainer: {
-    marginRight: 12,
-  },
-  infoContent: {
-    flex: 1,
-  },
-  infoTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#1E293B",
-    marginBottom: 4,
-  },
-  infoText: {
-    fontSize: 13,
     color: "#64748B",
-    lineHeight: 20,
+    marginBottom: 4,
+    fontWeight: "500",
   },
-  leaveBtn: {
+  userName: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  profileBtn: {
+    padding: 4,
+  },
+  contentContainer: {
+    padding: 20,
+  },
+  controlCard: {
+    backgroundColor: "white",
+    borderRadius: 24,
+    padding: 24,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  cardHeader: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 24,
+  },
+  liveIndicator: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "white",
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: "#EF4444",
-    gap: 8,
+    backgroundColor: "#DEF7EC",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
   },
-  leaveBtnText: {
-    color: "#EF4444",
-    fontSize: 16,
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#10B981",
+  },
+  liveText: {
+    color: "#047857",
+    fontSize: 12,
     fontWeight: "600",
+  },
+  tokenDisplayContainer: {
+    alignItems: "center",
+    marginBottom: 32,
+  },
+  tokenLabel: {
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 16,
+  },
+  tokenCircle: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: "#F8FAFC",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 4,
+    borderColor: "#0165FC10",
+  },
+  tokenNumber: {
+    fontSize: 64,
+    fontWeight: "800",
+    color: "#0165FC",
+    letterSpacing: -2,
+  },
+  callNextBtn: {
+    flexDirection: "row",
+    width: "100%",
+    backgroundColor: "#0165FC",
+    paddingVertical: 18,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#0165FC",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+    marginBottom: 24,
+  },
+  callNextText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+  },
+  cardFooter: {
+    width: "100%",
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#F1F5F9",
+    alignItems: "center",
+  },
+  queueStatItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#F1F5F9",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  queueStatText: {
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  statHighlight: {
+    color: "#1E293B",
+    fontWeight: "700",
   },
 });

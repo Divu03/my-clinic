@@ -1,19 +1,176 @@
-import { useQueue } from "@/src/context/QueueContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { FilterBottomSheet } from "../../../src/components/FilterBottomSheet";
 import { useAuth } from "../../../src/context/AuthContext";
+import { Clinic, ClinicType, ClinicTypeValue } from "../../../src/models/types";
+import { useHomeViewModel } from "../../../src/viewmodels/useHomeViewModel";
 
 // ============================================
-// MAIN COMPONENT
+// CLINIC TYPE FILTERS
 // ============================================
-export default function HomeScreen() {
+const CLINIC_TYPES: { label: string; value: ClinicTypeValue | null }[] = [
+  { label: "All", value: null },
+  { label: "General", value: ClinicType.GENERAL_PRACTICE },
+  { label: "Dental", value: ClinicType.DENTIST },
+  { label: "Pediatric", value: ClinicType.PEDIATRICS },
+  { label: "Derma", value: ClinicType.DERMATOLOGY },
+  { label: "ENT", value: ClinicType.ENT },
+];
+
+// ============================================
+// CLINIC CARD COMPONENT
+// ============================================
+const ClinicCard = ({
+  clinic,
+  onPress,
+}: {
+  clinic: Clinic;
+  onPress: () => void;
+}) => {
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case "DENTIST":
+        return "#10B981";
+      case "PEDIATRICS":
+        return "#F59E0B";
+      case "DERMATOLOGY":
+        return "#EC4899";
+      case "ENT":
+        return "#8B5CF6";
+      default:
+        return "#0165FC";
+    }
+  };
+
+  const color = getTypeColor(clinic.type);
+
+  return (
+    <TouchableOpacity
+      style={styles.clinicCard}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      {/* Avatar */}
+      <View style={[styles.clinicAvatar, { backgroundColor: `${color}15` }]}>
+        {clinic.logo ? (
+          <Image source={{ uri: clinic.logo }} style={styles.clinicLogo} />
+        ) : (
+          <Ionicons name="medical" size={22} color={color} />
+        )}
+      </View>
+
+      {/* Info */}
+      <View style={styles.clinicInfo}>
+        <Text style={styles.clinicName} numberOfLines={1}>
+          {clinic.name}
+        </Text>
+        <View style={[styles.typeBadge, { backgroundColor: `${color}15` }]}>
+          <Text style={[styles.typeBadgeText, { color }]}>
+            {clinic.type.replace("_", " ")}
+          </Text>
+        </View>
+        {clinic.openingHours && (
+          <View style={styles.clinicMeta}>
+            <Ionicons name="time-outline" size={12} color="#94A3B8" />
+            <Text style={styles.metaText}>
+              {clinic.openingHours.start} - {clinic.openingHours.end}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Distance */}
+      <View style={styles.distanceContainer}>
+        {clinic.distance_km != null && (
+          <Text style={styles.distanceText}>
+            {clinic.distance_km.toFixed(1)} km
+          </Text>
+        )}
+        <Ionicons name="chevron-forward" size={18} color="#CBD5E1" />
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+// ============================================
+// TYPE FILTER CHIP
+// ============================================
+const TypeChip = ({
+  label,
+  isActive,
+  onPress,
+}: {
+  label: string;
+  isActive: boolean;
+  onPress: () => void;
+}) => (
+  <TouchableOpacity
+    style={[styles.filterChip, isActive && styles.filterChipActive]}
+    onPress={onPress}
+  >
+    <Text style={[styles.filterText, isActive && styles.filterTextActive]}>
+      {label}
+    </Text>
+  </TouchableOpacity>
+);
+
+// ============================================
+// MAIN COMPONENT (ADMIN HOME)
+// ============================================
+export default function AdminHomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { callNextTocken } = useQueue();
+  const {
+    clinics,
+    loading,
+    refreshing,
+    loadingMore,
+    onRefresh,
+    loadMore,
+    searchQuery,
+    setSearchQuery,
+    selectedType,
+    setSelectedType,
+    // Filters
+    radius,
+    setRadius,
+    showAllClinics,
+    setShowAllClinics,
+    showFilters,
+    setShowFilters,
+    applyFilters,
+  } = useHomeViewModel();
+
+  const renderClinic = useCallback(
+    ({ item }: { item: Clinic }) => (
+      <ClinicCard
+        clinic={item}
+        onPress={() =>
+          // NAVIGATE TO ADMIN DETAILS PAGE
+          router.push({
+            pathname: `/(admin)/clinic-details/${item.id}`,
+            params: { distance: item.distance_km?.toString() },
+          } as any)
+        }
+      />
+    ),
+    [router]
+  );
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -21,6 +178,22 @@ export default function HomeScreen() {
     if (hour < 17) return "Good Afternoon";
     return "Good Evening";
   };
+
+  const renderListEmpty = () => (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="medical-outline" size={48} color="#CBD5E1" />
+      <Text style={styles.emptyTitle}>No Clinics Found</Text>
+      <Text style={styles.emptySubtitle}>
+        Try adjusting your search or filters
+      </Text>
+      <TouchableOpacity
+        style={styles.emptyButton}
+        onPress={() => setShowFilters(true)}
+      >
+        <Text style={styles.emptyButtonText}>Open Filters</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
@@ -30,21 +203,119 @@ export default function HomeScreen() {
         <View style={styles.greetingRow}>
           <View>
             <Text style={styles.greeting}>{getGreeting()} 👋</Text>
-            <Text style={styles.userName}>{user?.firstName || "Guest"}</Text>
+            <Text style={styles.userName}>Admin {user?.firstName}</Text>
           </View>
           <TouchableOpacity
             style={styles.profileBtn}
-            onPress={() => router.push("/profile")}
+            onPress={() => router.push("/(admin)/(tabs)/profile")}
           >
             <Ionicons name="person-circle" size={40} color="#0165FC" />
           </TouchableOpacity>
         </View>
+
+        {/* Search Row */}
+        <View style={styles.searchRow}>
+          <View style={styles.searchContainer}>
+            <Ionicons name="search" size={18} color="#94A3B8" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search clinics..."
+              placeholderTextColor="#94A3B8"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery("")}>
+                <Ionicons name="close-circle" size={18} color="#CBD5E1" />
+              </TouchableOpacity>
+            )}
+          </View>
+          <TouchableOpacity
+            style={styles.filterBtn}
+            onPress={() => setShowFilters(true)}
+          >
+            <Ionicons name="options-outline" size={20} color="#0165FC" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Filter Status */}
+        <View style={styles.filterStatus}>
+          <Text style={styles.filterStatusText}>
+            {showAllClinics
+              ? `Showing all clinics (${clinics.length})`
+              : `Within ${radius} km (${clinics.length} clinics)`}
+          </Text>
+        </View>
+
+        {/* Type Filters */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterList}
+        >
+          {CLINIC_TYPES.map((item) => (
+            <TypeChip
+              key={item.label}
+              label={item.label}
+              isActive={selectedType === item.value}
+              onPress={() => setSelectedType(item.value)}
+            />
+          ))}
+        </ScrollView>
+
+        {/* Section Title */}
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionTitle}>
+            {showAllClinics ? "All Clinics" : "Nearby Clinics"}
+          </Text>
+        </View>
       </View>
-      {
-        //Activate Queue
-        //Request Form
-      }
-      <Button title="Start Queue" onPress={callNextTocken} />
+
+      {/* Scrollable Clinic List */}
+      {loading && !refreshing ? (
+        <View style={styles.listLoadingContainer}>
+          <ActivityIndicator size="large" color="#0165FC" />
+          <Text style={styles.listLoadingText}>Finding clinics...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={clinics}
+          renderItem={renderClinic}
+          keyExtractor={(item) => item.id}
+          ListEmptyComponent={renderListEmpty}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={styles.loadingMoreContainer}>
+                <ActivityIndicator size="small" color="#0165FC" />
+                <Text style={styles.loadingMoreText}>Loading more...</Text>
+              </View>
+            ) : null
+          }
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.3}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#0165FC"
+              colors={["#0165FC"]}
+            />
+          }
+        />
+      )}
+
+      {/* Filter Bottom Sheet */}
+      <FilterBottomSheet
+        visible={showFilters}
+        onClose={() => setShowFilters(false)}
+        radius={radius}
+        setRadius={setRadius}
+        showAllClinics={showAllClinics}
+        setShowAllClinics={setShowAllClinics}
+        onApply={applyFilters}
+      />
     </View>
   );
 }
@@ -179,11 +450,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#1E293B",
-  },
-  mapLink: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#0165FC",
   },
   clinicCard: {
     flexDirection: "row",
