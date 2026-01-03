@@ -10,6 +10,8 @@ import {
   loginSchema,
   RegisterInput,
   registerSchema,
+  UpdatePasswordInput,
+  updatePasswordSchema,
 } from "../models/types";
 import { AuthService } from "../services/authService";
 
@@ -357,6 +359,99 @@ export const useEditProfileViewModel = () => {
     getInitials,
     getDisplayImage,
     handleSave,
+  };
+};
+
+// ============================================
+// CHANGE PASSWORD VIEW MODEL
+// ============================================
+export const useChangePasswordViewModel = () => {
+  const router = useRouter();
+
+  const [formData, setFormData] = useState<UpdatePasswordInput>({
+    oldPassword: "",
+    newPassword: "",
+    confirmNewPassword: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const updateField = useCallback(
+    (field: keyof UpdatePasswordInput, value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      if (errors[field]) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
+      }
+    },
+    [errors]
+  );
+
+  const validate = useCallback((): boolean => {
+    const result = updatePasswordSchema.safeParse(formData);
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((err) => {
+        const field = err.path[0] as string;
+        fieldErrors[field] = err.message;
+      });
+      setErrors(fieldErrors);
+      return false;
+    }
+
+    setErrors({});
+    return true;
+  }, [formData]);
+
+  const handleChangePassword = useCallback(async (): Promise<{
+    success: boolean;
+    message?: string;
+  }> => {
+    if (!validate()) {
+      return { success: false, message: "Please fix the errors below" };
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await AuthService.updatePassword(formData);
+      if (result.success) {
+        // Clear form on success
+        setFormData({
+          oldPassword: "",
+          newPassword: "",
+          confirmNewPassword: "",
+        });
+        toast.success(result.message || "Password updated successfully");
+        router.back();
+        return { success: true, message: result.message };
+      } else {
+        toast.error(result.message || "Failed to update password");
+        return { success: false, message: result.message };
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      toast.error("Failed to update password");
+      return { success: false, message: "Failed to update password" };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [formData, validate, router]);
+
+  const clearErrors = useCallback(() => {
+    setErrors({});
+  }, []);
+
+  return {
+    formData,
+    updateField,
+    isLoading,
+    errors,
+    handleChangePassword,
+    clearErrors,
   };
 };
 

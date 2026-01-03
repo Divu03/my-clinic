@@ -131,7 +131,11 @@ export default function ProfileScreen() {
               label="Edit Profile"
               onPress={() => router.navigate("/patient-edit-profile")}
             />
-            <MenuItem icon="notifications-outline" label="Notifications" />
+            <MenuItem
+              icon="lock-closed"
+              label="Change Password"
+              onPress={() => router.navigate("/change-password")}
+            />
             <MenuItem icon="shield-outline" label="Privacy" />
           </View>
         </View>
