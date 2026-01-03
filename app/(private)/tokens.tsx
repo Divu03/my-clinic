@@ -1,3 +1,4 @@
+import { TokenStatus } from "@/src/models/types";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect } from "react";
@@ -32,6 +33,13 @@ export default function TokensScreen() {
       }
     }, [activeToken, refreshActiveToken])
   );
+
+  useEffect(() => {
+    if (!queueStatus || !activeToken) return;
+    if (queueStatus.currentTokenNo > activeToken.tokenNumber) {
+      refreshActiveToken();
+    }
+  }, [queueStatus, activeToken]);
 
   // Also refresh when component mounts
   useEffect(() => {
@@ -209,28 +217,46 @@ export default function TokensScreen() {
       </View>
 
       {/* Info Card */}
-      <View style={styles.infoCard}>
-        <View style={styles.infoIconContainer}>
-          <Ionicons name="information-circle" size={24} color="#0165FC" />
+      {activeToken.status === TokenStatus.WAITING && (
+        <View style={styles.infoCard}>
+          <View style={styles.infoIconContainer}>
+            <Ionicons name="information-circle" size={24} color="#0165FC" />
+          </View>
+          <View style={styles.infoContent}>
+            <Text style={styles.infoTitle}>Stay Nearby</Text>
+            <Text style={styles.infoText}>
+              We'll notify you when it's your turn. Make sure your notifications
+              are enabled.
+            </Text>
+          </View>
         </View>
-        <View style={styles.infoContent}>
-          <Text style={styles.infoTitle}>Stay Nearby</Text>
-          <Text style={styles.infoText}>
-            We'll notify you when it's your turn. Make sure your notifications
-            are enabled.
-          </Text>
+      )}
+
+      {activeToken.status === TokenStatus.CALLED && (
+        <View style={styles.infoCard}>
+          <View style={styles.infoIconContainer}>
+            <Ionicons name="information-circle" size={24} color="#0165FC" />
+          </View>
+          <View style={styles.infoContent}>
+            <Text style={styles.infoTitle}>You're Called!</Text>
+            <Text style={styles.infoText}>
+              Please proceed to the clinic. To meet your doctor.
+            </Text>
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Leave Button */}
-      <TouchableOpacity
-        style={styles.leaveBtn}
-        onPress={handleLeaveQueue}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="exit-outline" size={20} color="#EF4444" />
-        <Text style={styles.leaveBtnText}>Leave Queue</Text>
-      </TouchableOpacity>
+      {activeToken.status === TokenStatus.WAITING && (
+        <TouchableOpacity
+          style={styles.leaveBtn}
+          onPress={handleLeaveQueue}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="exit-outline" size={20} color="#EF4444" />
+          <Text style={styles.leaveBtnText}>Leave Queue</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={{ height: 20 }} />
     </ScrollView>
