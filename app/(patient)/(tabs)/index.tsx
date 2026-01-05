@@ -24,11 +24,14 @@ import { useHomeViewModel } from "../../../src/viewmodels/useHomeViewModel";
 // ============================================
 const CLINIC_TYPES: { label: string; value: ClinicTypeValue | null }[] = [
   { label: "All", value: null },
-  { label: "General", value: ClinicType.GENERAL_PRACTICE },
-  { label: "Dental", value: ClinicType.DENTIST },
-  { label: "Pediatric", value: ClinicType.PEDIATRICS },
-  { label: "Derma", value: ClinicType.DERMATOLOGY },
+  { label: "General Practice", value: ClinicType.GENERAL_PRACTICE },
+  { label: "Pediatrics", value: ClinicType.PEDIATRICS },
+  { label: "Dermatology", value: ClinicType.DERMATOLOGY },
+  { label: "Psychiatry", value: ClinicType.PSYCHIATRY },
+  { label: "Gynecology", value: ClinicType.GYNECOLOGY },
+  { label: "Orthopedics", value: ClinicType.ORTHOPEDICS },
   { label: "ENT", value: ClinicType.ENT },
+  { label: "Dentist", value: ClinicType.DENTIST },
 ];
 
 // ============================================
@@ -43,16 +46,24 @@ const ClinicCard = ({
 }) => {
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "DENTIST":
-        return "#10B981";
+      case "GENERAL_PRACTICE":
+        return "#0165FC";
       case "PEDIATRICS":
         return "#F59E0B";
       case "DERMATOLOGY":
         return "#EC4899";
+      case "PSYCHIATRY":
+        return "#6366F1";
+      case "GYNECOLOGY":
+        return "#F43F5E";
+      case "ORTHOPEDICS":
+        return "#14B8A6";
       case "ENT":
         return "#8B5CF6";
+      case "DENTIST":
+        return "#10B981";
       default:
-        return "#0165FC";
+        return "#6B7280";
     }
   };
 

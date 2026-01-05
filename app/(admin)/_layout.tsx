@@ -22,6 +22,13 @@ export default function PrivateLayout() {
             presentation: "card",
           }}
         />
+        <Stack.Screen
+          name="edit-clinic/[id]"
+          options={{
+            headerShown: false,
+            presentation: "card",
+          }}
+        />
       </Stack>
     </View>
   );

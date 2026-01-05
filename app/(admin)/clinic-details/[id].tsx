@@ -15,7 +15,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { toast } from "sonner-native";
 import { Clinic } from "../../../src/models/types";
 import { ClinicService } from "../../../src/services/clinicService";
 
@@ -138,7 +137,7 @@ export default function AdminClinicDetailsScreen() {
 
   // HANDLERS
   const handleEditDetails = () => {
-    toast.info("This feature is under construction 🚧");
+    router.push(`/(admin)/edit-clinic/${id}`);
   };
 
   const handleCall = () => {

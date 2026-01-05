@@ -201,6 +201,74 @@ export const ClinicService = {
       return null;
     }
   },
+
+  /**
+   * Update clinic details
+   */
+  updateClinic: async (
+    clinicId: string,
+    data: any
+  ): Promise<{ success: boolean; message?: string; data?: Clinic }> => {
+    try {
+      const response = await api.patch<ApiResponse<Clinic>>(
+        `/clinic/${clinicId}`,
+        data
+      );
+
+      if (response.data.success) {
+        return {
+          success: true,
+          message: "Clinic updated successfully",
+          data: response.data.data,
+        };
+      }
+
+      return {
+        success: false,
+        message: response.data.message || "Failed to update clinic",
+      };
+    } catch (error: any) {
+      console.error("Failed to update clinic:", error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || "Failed to update clinic",
+      };
+    }
+  },
+
+  /**
+   * Create a new doctor clinic
+   */
+  createDoctorClinic: async (
+    data: FormData
+  ): Promise<{ success: boolean; message?: string; data?: any }> => {
+    try {
+      const response = await api.post<ApiResponse<any>>(`/clinic`, data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.data.success) {
+        return {
+          success: true,
+          message: response.data.message || "Clinic created successfully",
+          data: response.data.data,
+        };
+      }
+
+      return {
+        success: false,
+        message: response.data.message || "Failed to update clinic",
+      };
+    } catch (error: any) {
+      console.error("Failed to update clinic:", error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || "Failed to update clinic",
+      };
+    }
+  },
 };
 
 // ============================================

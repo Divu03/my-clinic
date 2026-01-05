@@ -91,6 +91,77 @@ export const toggleQueueStatusBodySchema = z.object({
   isActive: z.boolean(),
 });
 
+export const updateDoctorClinicSchema = z.object({
+  name: z.string().min(1).optional(),
+  address: z.string().optional(),
+  latitude: z.preprocess((val) => Number(val), z.number()).optional(),
+  longitude: z.preprocess((val) => Number(val), z.number()).optional(),
+  phone: z
+    .string()
+    .regex(/^\d{10}$/)
+    .max(10)
+    .optional(),
+  email: z.email().optional(),
+  website: z.url().optional(),
+  description: z.string().optional(),
+  openingHours: z
+    .preprocess(
+      (val: string) => JSON.parse(val),
+      z.object({ start: z.string(), end: z.string() })
+    )
+    .optional(),
+  type: z
+    .enum([
+      "GENERAL_PRACTICE",
+      "PEDIATRICS",
+      "DERMATOLOGY",
+      "PSYCHIATRY",
+      "GYNECOLOGY",
+      "ORTHOPEDICS",
+      "ENT",
+      "DENTIST",
+    ])
+    .optional(),
+});
+
+export const createDoctorClinicSchema = z.object({
+  name: z.string().min(1),
+  address: z.string().optional(),
+  latitude: z.preprocess((val) => Number(val), z.number()),
+  longitude: z.preprocess((val) => Number(val), z.number()),
+  phone: z
+    .string()
+    .regex(/^\d{10}$/)
+    .max(10)
+    .optional(),
+  email: z.email().optional(),
+  website: z.url().optional(),
+  description: z.string().optional(),
+  logo: z.any().optional(),
+  images: z.array(z.any()).optional(),
+  openingHours: z
+    .preprocess(
+      (val: string) => JSON.parse(val),
+      z.object({
+        start: z.string(),
+        end: z.string(),
+      })
+    )
+    .optional(),
+  type: z
+    .enum([
+      "GENERAL_PRACTICE",
+      "PEDIATRICS",
+      "DERMATOLOGY",
+      "PSYCHIATRY",
+      "GYNECOLOGY",
+      "ORTHOPEDICS",
+      "ENT",
+      "DENTIST",
+    ])
+    .optional(),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
@@ -98,6 +169,8 @@ export type GetClinicsQuery = z.infer<typeof getClinicsQuerySchema>;
 export type ToggleQueueStatusInput = z.infer<
   typeof toggleQueueStatusBodySchema
 >;
+export type UpdateDoctorClinicInput = z.infer<typeof updateDoctorClinicSchema>;
+export type CreateDoctorClinicInput = z.infer<typeof createDoctorClinicSchema>;
 
 // ============================================
 // INTERFACES

@@ -46,7 +46,7 @@ interface FilterContextType {
 const FilterContext = createContext<FilterContextType>({} as FilterContextType);
 
 export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
 
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
@@ -98,6 +98,11 @@ export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const fetchLocation = useCallback(async () => {
+    // Skip location request for ADMIN and STAFF
+    if (user?.role === "ADMIN" || user?.role === "STAFF") {
+      return null;
+    }
+
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
@@ -123,7 +128,7 @@ export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
       console.error("Failed to get location:", err);
       return null;
     }
-  }, []);
+  }, [user?.role]);
 
   const refreshClinics = useCallback(async () => {
     if (!isAuthenticated) {
@@ -139,8 +144,11 @@ export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(true);
       setError(null);
 
+      // Skip location for ADMIN and STAFF - always show all clinics
+      const isAdminOrStaff = user?.role === "ADMIN" || user?.role === "STAFF";
       let location = userLocationRef.current;
-      if (!location && !showAllClinicsRef.current) {
+
+      if (!isAdminOrStaff && !location && !showAllClinicsRef.current) {
         location = await fetchLocation();
       }
 
@@ -157,7 +165,8 @@ export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
         params.query = searchQuery;
       }
 
-      if (!showAllClinicsRef.current && location) {
+      // For ADMIN and STAFF, don't use location-based filtering
+      if (!isAdminOrStaff && !showAllClinicsRef.current && location) {
         params.latitude = location.latitude;
         params.longitude = location.longitude;
         params.radius = radiusRef.current;
@@ -177,7 +186,7 @@ export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
       isFetchingRef.current = false;
     }
-  }, [fetchLocation, selectedType, searchQuery, isAuthenticated]);
+  }, [fetchLocation, selectedType, searchQuery, isAuthenticated, user?.role]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -191,11 +200,17 @@ export const FilterProvider = ({ children }: { children: React.ReactNode }) => {
     if (authLoading || !isAuthenticated) return;
     if (isInitializedRef.current) return;
 
+    // For ADMIN and STAFF, automatically set showAllClinics to true (no location needed)
+    if (user?.role === "ADMIN" || user?.role === "STAFF") {
+      setShowAllClinicsState(true);
+      showAllClinicsRef.current = true;
+    }
+
     console.log("FilterContext: Initial fetch triggered");
     isInitializedRef.current = true;
     refreshClinics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, user?.role]);
 
   // Search query changes - only runs after initialization and when query actually changes
   useEffect(() => {

@@ -24,11 +24,14 @@ import { useHomeViewModel } from "../../../src/viewmodels/useHomeViewModel";
 // ============================================
 const CLINIC_TYPES: { label: string; value: ClinicTypeValue | null }[] = [
   { label: "All", value: null },
-  { label: "General", value: ClinicType.GENERAL_PRACTICE },
-  { label: "Dental", value: ClinicType.DENTIST },
-  { label: "Pediatric", value: ClinicType.PEDIATRICS },
-  { label: "Derma", value: ClinicType.DERMATOLOGY },
+  { label: "General Practice", value: ClinicType.GENERAL_PRACTICE },
+  { label: "Pediatrics", value: ClinicType.PEDIATRICS },
+  { label: "Dermatology", value: ClinicType.DERMATOLOGY },
+  { label: "Psychiatry", value: ClinicType.PSYCHIATRY },
+  { label: "Gynecology", value: ClinicType.GYNECOLOGY },
+  { label: "Orthopedics", value: ClinicType.ORTHOPEDICS },
   { label: "ENT", value: ClinicType.ENT },
+  { label: "Dentist", value: ClinicType.DENTIST },
 ];
 
 // ============================================
@@ -43,16 +46,24 @@ const ClinicCard = ({
 }) => {
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "DENTIST":
-        return "#10B981";
+      case "GENERAL_PRACTICE":
+        return "#0165FC";
       case "PEDIATRICS":
         return "#F59E0B";
       case "DERMATOLOGY":
         return "#EC4899";
+      case "PSYCHIATRY":
+        return "#6366F1";
+      case "GYNECOLOGY":
+        return "#F43F5E";
+      case "ORTHOPEDICS":
+        return "#14B8A6";
       case "ENT":
         return "#8B5CF6";
+      case "DENTIST":
+        return "#10B981";
       default:
-        return "#0165FC";
+        return "#6B7280";
     }
   };
 
@@ -185,15 +196,10 @@ export default function AdminHomeScreen() {
       <Ionicons name="medical-outline" size={48} color="#CBD5E1" />
       <Text style={styles.emptyTitle}>No Clinics Found</Text>
       <Text style={styles.emptySubtitle}>
-        Try adjusting your search or filters
+        {searchQuery.length > 0
+          ? "No clinics found for your search"
+          : "No clinics found. Please add some clinics."}
       </Text>
-      <TouchableOpacity
-        style={styles.emptyButton}
-        onPress={() => setShowFilters(true)}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.emptyButtonText}>Open Filters</Text>
-      </TouchableOpacity>
     </View>
   );
 
@@ -237,11 +243,11 @@ export default function AdminHomeScreen() {
             )}
           </View>
           <TouchableOpacity
-            style={styles.filterBtn}
-            onPress={() => setShowFilters(true)}
+            style={styles.addClinicBtn}
+            onPress={() => router.push("/(admin)/add-clinic")}
             activeOpacity={0.8}
           >
-            <Ionicons name="options-outline" size={20} color="#0165FC" />
+            <Ionicons name="add" size={20} color="#0165FC" />
           </TouchableOpacity>
         </View>
 
@@ -547,5 +553,13 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "600",
     fontSize: 14,
+  },
+  addClinicBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "#EFF6FF",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
