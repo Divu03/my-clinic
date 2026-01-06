@@ -450,7 +450,7 @@ export default function AdminClinicDetailsScreen() {
           activeOpacity={0.8}
         >
           <Ionicons name="pencil" size={20} color="white" />
-          <Text style={styles.editBtnText}>Edit Clinic Details</Text>
+          <Text style={styles.editBtnText}>Edit Details</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -459,7 +459,7 @@ export default function AdminClinicDetailsScreen() {
           activeOpacity={0.8}
         >
           <Ionicons name="person-add" size={20} color="white" />
-          <Text style={styles.editBtnText}>Add Staff Member</Text>
+          <Text style={styles.editBtnText}>Add Staff</Text>
         </TouchableOpacity>
       </View>
     </View>

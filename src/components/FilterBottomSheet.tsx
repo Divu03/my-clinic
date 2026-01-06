@@ -263,7 +263,8 @@ export const FilterBottomSheet = React.memo<FilterBottomSheetProps>(
             <Switch
               value={showAllClinics}
               onValueChange={handleSetShowAllClinics}
-              trackColor={{ false: "#E2E8F0", true: "#0165FC" }}
+              trackColor={{ false: "#000000ff", true: "#0165FC" }}
+              ios_backgroundColor="#000000ff"
               thumbColor="white"
               style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
             />
