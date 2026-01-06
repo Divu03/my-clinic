@@ -1,3 +1,4 @@
+import useHomeViewModel from "@/src/viewmodels/useHomeViewModel";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -7,10 +8,12 @@ import {
   FlatList,
   Image,
   Linking,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -119,6 +122,11 @@ export default function AdminClinicDetailsScreen() {
   const [clinic, setClinic] = useState<Clinic | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [staffModalVisible, setStaffModalVisible] = useState(false);
+  const [staffEmail, setStaffEmail] = useState("");
+
+  const { addStaff, loadingAddStaff } = useHomeViewModel();
+
   // FETCH CLINIC DATA
   useEffect(() => {
     const fetchClinic = async () => {
@@ -138,6 +146,22 @@ export default function AdminClinicDetailsScreen() {
   // HANDLERS
   const handleEditDetails = () => {
     router.push(`/(admin)/edit-clinic/${id}`);
+  };
+
+  const handleAddStaff = () => {
+    setStaffModalVisible(true);
+  };
+
+  const handleCancelAddStaff = () => {
+    setStaffEmail("");
+    setStaffModalVisible(false);
+  };
+
+  const handleConfirmAddStaff = async () => {
+    if (!id) return;
+    await addStaff(staffEmail, id);
+    setStaffEmail("");
+    setStaffModalVisible(false);
   };
 
   const handleCall = () => {
@@ -214,6 +238,62 @@ export default function AdminClinicDetailsScreen() {
         bounces={false}
         contentContainerStyle={{ paddingBottom: 100 + insets.bottom }}
       >
+        <Modal
+          visible={staffModalVisible}
+          transparent
+          animationType="none"
+          statusBarTranslucent
+        >
+          <View style={modalStyles.overlay}>
+            <View style={modalStyles.modalCard}>
+              <Text style={modalStyles.title}>Add Staff Member</Text>
+              <Text style={modalStyles.subtitle}>
+                Enter the email address of the staff member you want to invite.
+              </Text>
+
+              <View style={modalStyles.inputWrapper}>
+                <Ionicons name="mail-outline" size={18} color="#64748B" />
+                <TextInput
+                  placeholder="staff@email.com"
+                  value={staffEmail}
+                  onChangeText={setStaffEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  style={modalStyles.input}
+                  placeholderTextColor="#94A3B8"
+                />
+              </View>
+
+              <View style={modalStyles.actions}>
+                <TouchableOpacity
+                  style={modalStyles.cancelBtn}
+                  onPress={handleCancelAddStaff}
+                  activeOpacity={0.8}
+                >
+                  <Text style={modalStyles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  disabled={loadingAddStaff}
+                  style={[
+                    modalStyles.addBtn,
+                    loadingAddStaff && modalStyles.addBtnDisabled,
+                  ]}
+                  onPress={handleConfirmAddStaff}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="person-add" size={18} color="white" />
+                  {loadingAddStaff ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <Text style={modalStyles.addText}>Add</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
         {/* Image Carousel */}
         <ImageCarousel
           images={clinic.images}
@@ -371,6 +451,15 @@ export default function AdminClinicDetailsScreen() {
         >
           <Ionicons name="pencil" size={20} color="white" />
           <Text style={styles.editBtnText}>Edit Clinic Details</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.addStaffBtn}
+          onPress={handleAddStaff}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="person-add" size={20} color="white" />
+          <Text style={styles.editBtnText}>Add Staff Member</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -639,6 +728,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    flexDirection: "row",
+    gap: 10,
     backgroundColor: "white",
     paddingHorizontal: 20,
     paddingTop: 16,
@@ -650,6 +741,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
   },
   editBtn: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -662,5 +754,102 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+  },
+  addStaffBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#0165FC",
+    paddingVertical: 16,
+    borderRadius: 14,
+    gap: 8,
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.5)", // slate overlay
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  modalCard: {
+    width: "100%",
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#64748B",
+    marginBottom: 16,
+    lineHeight: 22,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 48,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    gap: 8,
+  },
+  input: {
+    flex: 1,
+    fontSize: 14,
+    color: "#1E293B",
+  },
+  actions: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 20,
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+  },
+  cancelText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#475569",
+  },
+  addBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: "#0165FC",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 6,
+  },
+  addText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "white",
+  },
+  addBtnDisabled: {
+    opacity: 0.6,
   },
 });

@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner-native";
+import z from "zod";
+import { useAuth } from "../context/AuthContext";
 import { useFilters } from "../context/FilterContext";
 import { Clinic } from "../models/types";
-
-// ============================================
-// CONSTANTS
-// ============================================
-const PAGE_LIMIT = 15;
+import ClinicService from "../services/clinicService";
 
 // ============================================
 // HOME VIEW MODEL
@@ -16,6 +15,8 @@ export const useHomeViewModel = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadingAddStaff, setLoadingAddStaff] = useState(false);
+  const { user } = useAuth();
 
   // Pagination - use refs to avoid stale closures in callbacks
   const [page, setPage] = useState(1);
@@ -41,9 +42,6 @@ export const useHomeViewModel = () => {
     showFilters,
     setShowFilters,
     clearFilters,
-    radiusRef,
-    showAllClinicsRef,
-    userLocationRef,
   } = useFilters();
 
   // ============================================
@@ -109,6 +107,32 @@ export const useHomeViewModel = () => {
     console.log("Load more - pagination not yet implemented");
   }, []);
 
+  const addStaff = useCallback(async (email: string, clinicId: string) => {
+    if (!user || user.role !== "ADMIN") {
+      toast.error("You are not authorized to add staff");
+      return;
+    }
+    const emailValidation = z.email().parse(email);
+    if (!emailValidation) {
+      toast.error("Invalid email");
+      return;
+    }
+    setLoadingAddStaff(true);
+    try {
+      const response = await ClinicService.addStaff(clinicId, email);
+      if (response.success) {
+        toast.success(response.message || "Staff added successfully");
+      } else {
+        toast.error(response.message || "Failed to add staff");
+      }
+    } catch (error) {
+      console.log("Failed to add staff:", error);
+      toast.error("Failed to add staff");
+    } finally {
+      setLoadingAddStaff(false);
+    }
+  }, []);
+
   return {
     // Data - use filtered clinics for display
     clinics: filteredClinics,
@@ -121,6 +145,7 @@ export const useHomeViewModel = () => {
     loadingMore,
     error,
     hasMore,
+    loadingAddStaff,
 
     // Filters (from shared context)
     radius,
@@ -140,6 +165,7 @@ export const useHomeViewModel = () => {
     applyFilters,
     clearFilters,
     loadMore,
+    addStaff,
   };
 };
 

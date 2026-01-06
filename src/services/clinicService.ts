@@ -269,6 +269,41 @@ export const ClinicService = {
       };
     }
   },
+
+  /**
+   * Add staff to clinic
+   */
+  addStaff: async (
+    clinicId: string,
+    email: string
+  ): Promise<{ success: boolean; message?: string; data?: any }> => {
+    try {
+      console.log("=== ClinicService.addStaff ===");
+      console.log(`Adding staff to clinic: ${clinicId}`);
+      console.log(`Email: ${email}`);
+      const response = await api.post<ApiResponse<any>>(
+        `/clinic/${clinicId}/staff`,
+        { email }
+      );
+      if (response.data.success) {
+        return {
+          success: true,
+          message: response.data.message || "Staff added successfully",
+          data: response.data.data,
+        };
+      }
+      return {
+        success: false,
+        message: response.data.message || "Failed to add staff",
+      };
+    } catch (error: any) {
+      console.log("Failed to add staff:", error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || "Failed to add staff",
+      };
+    }
+  },
 };
 
 // ============================================
